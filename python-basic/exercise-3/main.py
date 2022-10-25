@@ -4,9 +4,11 @@ class BricksAndWaterPython:
 
     def how_much_water(self, towers: list) -> int:
 
+        N = len(towers)
         def get_border(items):
             temp = items[0]
             side = [temp]
+            print([items[0]] + [max(items[n-1], items[n]) for n in range(1, N)])
             for i in range(1, len(items)):
                 if items[i] > temp: 
                     temp = items[i]
