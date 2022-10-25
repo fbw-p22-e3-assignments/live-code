@@ -5,33 +5,20 @@ class BricksAndWaterPython:
     def how_much_water(self, towers: list) -> int:
 
         N = len(towers)
-        def get_border(items):
-            temp = items[0]
-            side = [temp]
-            print([items[0]] + [max(items[n-1], items[n]) for n in range(1, N)])
-            for i in range(1, len(items)):
-                if items[i] > temp: 
-                    temp = items[i]
-                    side.append(temp)
-                else: side.append(temp)
-            return side
 
-        left = get_border(towers)
-        right = get_border(list(reversed(towers)))
-        right = list(reversed(right))
-
-        sum_of_water = 0
-
+        left = [max(towers[:n]) for n in range(1, N + 1)]
+        right= [max(towers[n:]) for n in range(0, N )]
         print(left)
         print(right)
         print(towers)
 
+        sum_of_water = 0
         for i in range(0, len(towers)-1):
             sum_of_water += min(left[i], right[i]) - towers[i]
         
         return sum_of_water
 
 
-# results = BricksAndWaterPython()
+results = BricksAndWaterPython()
 
-# print(results.how_much_water([1, 5, 3, 7, 2]))
+print(results.how_much_water([2, 6, 3, 5, 2, 8, 1, 4, 2, 2, 5, 3, 5, 7, 4, 1]))
