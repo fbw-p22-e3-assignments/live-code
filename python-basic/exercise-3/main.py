@@ -32,6 +32,6 @@ class BricksAndWaterPython:
         return sum_of_water
 
 
-results = BricksAndWaterPython()
+# results = BricksAndWaterPython()
 
-print(results.how_much_water([1, 5, 3, 7, 2]))
+# print(results.how_much_water([1, 5, 3, 7, 2]))
