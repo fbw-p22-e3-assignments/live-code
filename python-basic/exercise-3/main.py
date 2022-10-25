@@ -18,39 +18,7 @@ class BricksAndWaterPython:
         right = get_border(list(reversed(towers)))
         right = list(reversed(right))
 
-        temp = towers[0]
-        left = list([temp])
-        for i in range(1, len(towers)):
-            if towers[i] > temp: 
-                temp = towers[i]
-                left.append(temp)
-            else: left.append(temp)
-
-        reversed_towers = list(reversed(towers)) 
-        temp = reversed_towers[0]
-        right = list([temp])
-        for i in range(1, len(towers)):
-            if reversed_towers[i] > temp: 
-                temp = reversed_towers[i]
-                right.append(temp)
-            else: right.append(temp)
-        right = list(reversed(right))
-
-
-
-        # temp = towers[-1]
-        # right = list([temp])
-        # for i in range(len(towers) -2 , -1, -1):
-        #     if towers[i] > temp:
-        #         temp = towers[i]
-        #         right.insert(0, temp)
-        #     else: 
-        #         right.insert(0, temp)
-
-
         sum_of_water = 0
-
-
 
         print(left)
         print(right)
