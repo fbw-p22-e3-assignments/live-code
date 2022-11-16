@@ -1,5 +1,4 @@
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 from dateutil import tz
 
 moscow = tz.gettz('Europe/Moscow')
