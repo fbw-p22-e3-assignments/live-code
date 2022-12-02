@@ -5,7 +5,7 @@ def digit_filter(strings):
     return [string for string in strings if re.search(r'^[a-zA-z\s]+$', string)]
 
 def digit_filter2(strings):
-    return [string for string in strings if not all([char.isdigit() for char in string])]
+    return [string for string in strings if not any([char.isdigit() for char in string])]
 
 print(digit_filter(l33t))
 print(digit_filter2(l33t))
@@ -20,5 +20,5 @@ def digit_filter1(original):
   return new
 
 print(digit_filter1(l33t))
-print(all([char for char in 'bla3awd' if char.isdigit()]))
-print(([char.isdigit() for char in 'bjahw3d']))
+# print(all([char for char in 'bla3awd' if char.isdigit()]))
+# print(([char.isdigit() for char in 'bjahw3d']))
