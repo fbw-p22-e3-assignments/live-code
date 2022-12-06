@@ -5,7 +5,7 @@ def value_factory(index):
         return inner
     return decorator
 
-@value_factory(0)
+@value_factory(1)
 def sort_helper(item):
     return item
 
