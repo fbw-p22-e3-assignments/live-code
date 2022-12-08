@@ -1,11 +1,7 @@
 import re
 def is_pangram(sentence):
     alphabet = "abcdefghijklmnopqrstuvwxyz"
-    for char in alphabet:
-        if char not in sentence.lower():
-            print(char)
-            return False
-    return True
+    return all([char in sentence.lower() for char in alphabet])
 
 
 sentence1 = "waltz, bad nymph, for quick jigs vex."
@@ -26,3 +22,4 @@ print(is_pangram(sentence5))
 print(is_pangram(sentence6))
 print(is_pangram(sentence7))
 print(is_pangram(sentence8))
+print(is_pangram('bla'))
