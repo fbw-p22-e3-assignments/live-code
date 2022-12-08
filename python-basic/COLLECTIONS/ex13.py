@@ -38,21 +38,21 @@ def get_student3():
       print(grade)
       print(len(list(subject)))
 
-
-# def get_student2():
-#   chain_sub = collections.ChainMap({})
-#   for student in students:
-#     chain_sub = chain_sub.new_child(student['subjects'])
-#   print(chain_sub.maps)
+def get_student2():
+  for student in students:
+    count_F = [subject['grade'] for subject in student['subjects']].count('F')
+    if count_F < 2:
+      print(student)
+# get_student2()
 
 def get_student():
   for student in students:
     ct = collections.Counter()  
     ct.update([subject['grade'] for subject in student['subjects']])
-    if not ct['F'] >= 2:
+    if ct['F'] < 2:
       print(student)
 
-get_student3()
+get_student()
 
 
 
