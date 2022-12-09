@@ -35,7 +35,7 @@ random.shuffle(needles)
 def generate_haystack(N):
     haystack = list(range(1000, N + 500))
     # random.shuffle(haystack)
-    # haystack = [*haystack, *needles[:500]]
+    haystack = [*haystack, *needles[:500]]
     # for i in range(500):
     #     haystack.insert(random.randrange(N - 501),needles[i])
     # for i in range(1000):
