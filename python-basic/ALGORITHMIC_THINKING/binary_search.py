@@ -19,7 +19,7 @@ l = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,
 
 # print(binary_searche(l, 3))
 # print(binary_searche(l, 57))
-print(binary_searche(l, 100))
+print(binary_searche(l, 57))
 # print(binary_searche(range(1,1001,8), 998))
 # for size in [100,1_000, 10_000, 100_000]:
 #     print(max([binary_searche(range(1,size + 1), i) for i in range(1, size + 1)]))
