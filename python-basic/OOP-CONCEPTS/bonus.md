@@ -19,3 +19,12 @@
        Pay: monthlySalary --> will need to be calculated based off of salary
 ```
 
+#### 2. Manager Class
+
+- Create a `Manager` class which extends the `Employee` class
+
+- The `Manager` class will need the addition of a `managedEmployees` list property
+
+- The `Manager` class will need two methods:
+  - `addManagedEmployee` to add a managed employee to the `managedEmployees` list
+  - `removeManagedEmployee` to remove a managed employee from the `managedEmployees` list
