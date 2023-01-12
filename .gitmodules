@@ -1,0 +1,9 @@
+[submodule "python-basic/OOP-PRACTICE/oopii-1-python-oop_in_practice-tools_and_workers-pietowDCI"]
+	path = python-basic/OOP-PRACTICE/oopii-1-python-oop_in_practice-tools_and_workers-pietowDCI
+	url = git@github.com:fbw-p22-e3-assignments/oopii-1-python-oop_in_practice-tools_and_workers-pietowDCI.git
+[submodule "python-basic/OOP-PRACTICE/2-oopii-python-oop_in_practice-warehouse-pietowDCI"]
+	path = python-basic/OOP-PRACTICE/2-oopii-python-oop_in_practice-warehouse-pietowDCI
+	url = git@github.com:fbw-p22-e3-assignments/2-oopii-python-oop_in_practice-warehouse-pietowDCI.git
+[submodule "python-basic/OOP-PRACTICE/3-oopii-python-oop_in_practice-password_generator-pietowDCI"]
+	path = python-basic/OOP-PRACTICE/3-oopii-python-oop_in_practice-password_generator-pietowDCI
+	url = git@github.com:fbw-p22-e3-assignments/3-oopii-python-oop_in_practice-password_generator-pietowDCI.git
