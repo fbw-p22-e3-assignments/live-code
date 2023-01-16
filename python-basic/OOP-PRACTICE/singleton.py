@@ -19,21 +19,22 @@ class Singleton:
 # print(y.name)
 
 class Warehoues:
+    _instance = None
     def __init__(self):
-        self._instance = self
         self.emploees = 0
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = super(Warehoues, cls).__new__(cls)
-        cls._instance.emploees += 1
+            cls._instance = object.__new__(cls)
         return cls._instance
 
     def __str__(self):
         return f"Number of employees: {self.emploees}"
 
-w = Warehoues()
-w2 = Warehoues()
-print(w)
-print(w2)
+# w = Warehoues()
+# w2 = Warehoues()
+# print(w)
+# print(w2)
+# print(w is w2)
+print(Warehoues.__mro__)
 
