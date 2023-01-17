@@ -7,7 +7,7 @@ class TestMoney(unittest.TestCase):
     #Import add test in front of test's name
         five = Dollar(5)
         tenner = five.times(2)
-        self.assertEqual(10, tenner.amount)
+        self.assertEqual(10, tenner.amount, 'Wrong amount!')
         # Comparing actual value with expected value
         # in an assertEqual statement
 
