@@ -30,6 +30,10 @@ class TestMethods(unittest.TestCase):
     def test_method5(self):
         with self.assertRaises(TypeError):
             self.test.method5()
+    # def test_method6(self):
+    #     self.fail('HELLO,FAILED')
+    def test_method7(self):
+        pass
 
 if __name__ == '__main__':
     unittest.main()
