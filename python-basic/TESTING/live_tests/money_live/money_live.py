@@ -1,13 +1,13 @@
-# class Dollars:
-#     def __init__(self, value):
-#         self.amount = value
+class Dollar:
+    def __init__(self, value):
+        self.amount = value
 
-#     def times(self, num):
-#         return Dollars(num * self.amount) #Dollar
-#         # return num * self.amount  #Interger
+    def times(self, num):
+        return Dollar(num * self.amount) #Dollar
+        # return num * self.amount  #Interger
 
-#     def __repr__(self):
-#         return self.amount 
+    def __repr__(self):
+        return self.amount 
 
 class Money:
     def __init__(self, value, currency):
