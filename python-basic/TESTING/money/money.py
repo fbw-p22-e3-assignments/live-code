@@ -13,3 +13,6 @@ class Money:
 
     def times(self, factor):
         return Money(factor * self.amount, self.currency)
+
+    def divide(self, value):
+        return Money(self.amount / value, self.currency)
