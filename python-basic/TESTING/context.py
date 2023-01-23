@@ -1,26 +1,18 @@
-class MyContext:
+class MyAssertionRaisesContext:
+    def __init__(self, error):
+        self.error = error
+
     def __enter__(self):
-        print('entering context')
-        return 'BLA'
+        print("Entering context")
+
     def __exit__(self, exc_type, exc_value, traceback):
-        print('exiting context')
-        print('exc_type:', exc_type)
-        print('exc_value:', exc_value)
-        print('traceback:', traceback)
-        print('line of error (traceback):', traceback.tb_frame)
-        print('line of error (traceback):', traceback.tb_lineno)
-        if exc_type is ValueError:
-            print('ValueError')
-            print('*******ERROR******')
-            print('')
-            return False
+        print("Exiting context")
+        print("Error: {}".format(self.error))
+        if exc_type is self.error:
+            print("Caught error")
             return True
 
 
-def my_func():
-    with MyContext() as value:
-        raise ValueError('Whatever')
+with MyAssertionRaisesContext(ValueError):
+    raise ValueError("Something went wrong")
 
-
-if __name__ == '__main__':
-    my_func()
