@@ -14,7 +14,8 @@ def test_skip_with_con():
 def test_method1():
     assert True
 
-@pytest.mark.parametrize('test_input,expected', [(1,1), (2,2)])
-def test_method2(test_input, expected):
-    print(test_input, expected)
-    assert test_input == expected
+# @pytest.mark.parametrize('test_input,expected', [(1,1), (2,2)])
+@pytest.mark.parametrize('test_input', [1])
+def test_method2(test_input):
+    print(test_input)
+    assert test_input == 'test_input'
