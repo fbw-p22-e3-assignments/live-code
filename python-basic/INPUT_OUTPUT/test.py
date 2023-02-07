@@ -1,0 +1,7 @@
+print('\x41')
+print(ord('\x41'))
+print(chr(65))
+print(b'A')
+print('e'.encode('ASCII'))
+print('è'.encode('UTF-8'))
+# print('è'.encode('ASCII'))
