@@ -1,6 +1,6 @@
-import nameScript as ns
+import nameScript
 
-ns.myFunction()
+nameScript.myFunction()#2.
 
 
-print(__name__)
+print(__name__)#3

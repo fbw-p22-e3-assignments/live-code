@@ -1,5 +1,7 @@
 def myFunction():
-    print('Hello World')
-    print(__name__)
+    print('Hello World')#2.1.
+    print(__name__)#2.2
 
-print(__name__)
+
+if __name__ == '__main__':
+    print(__name__)#1.
