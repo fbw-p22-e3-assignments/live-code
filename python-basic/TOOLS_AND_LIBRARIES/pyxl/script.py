@@ -2,6 +2,7 @@ import openpyxl
 #create venv
 #activate
 #pip install openpyxl
+#file = openpyxl.load_workbook('mypyxl.xlsx')
 wb = openpyxl.Workbook()
 sheet_1 = wb.active  # opening a sheet called sheet_1 -- we don't need to create sheet since it is creates one sheet by default 
 sheet_1['A1'] = 'Hello Excel'
@@ -26,8 +27,21 @@ for i in sheet_2['A1:E15']:
             print(j.value)
 #for i in sheet_2.iter_rows(min_row = 2,  max_row = 7):  # if you don't specify min and max columns, it will print out all the columns that we have accessed before. in 34 we used E, so it will print upto E
     #print(i)
-for i in sheet_2.iter_rows(min_row = 2,  max_row = 7, min_col = 1, max_col = 3):
+for i in sheet_2.iter_rows(min_row = 2,  max_row = 7, min_col = 1, max_col = 3, values_only=True):
+    print(i)
+
+print('#############')
+
+for i in sheet_2.iter_cols(min_row = 2,  max_row = 7, min_col = 1, max_col = 3, values_only=True):
     print(i)
 #close
-wb.close()
-#file.close()
+
+# wb.close()
+# #file.close()
+# file = open('Path', 'r+')
+# file.read()
+# file.write('Hello word')
+# file.close()
+
+with openpyxl.load_workbook('mypyxl.xlsx') as wb:
+    pass
