@@ -1,0 +1,8 @@
+LICENSE
+README.md
+setup.py
+hello-world-piet2/src/hello_world.py
+hello-world-piet2/src/hello_world_piet2.egg-info/PKG-INFO
+hello-world-piet2/src/hello_world_piet2.egg-info/SOURCES.txt
+hello-world-piet2/src/hello_world_piet2.egg-info/dependency_links.txt
+hello-world-piet2/src/hello_world_piet2.egg-info/top_level.txt
