@@ -45,6 +45,7 @@ They had names like:
 - feature-driven development
 - dynamic systems development method
 - extreme programming
+- kanban
 - and scrum
 
 In 2001, 17 supporters of those methods met in Utah to discuss unifying their efforts. **The Agile Manifesto** was born.
@@ -72,7 +73,85 @@ The project is canceled at some point during the development cycle.
 
 These definitions were helpful to follow a plan.
 But there is something missing:
-- Even if project were a success by definition they may still fail because they did not appeal to the intended users.
+- Even if project were a success by definition they may still fail because they did not appeal to the intended users or have a flawed business logic.
+- And failures may b successful, because the system is loved by the target audience.
+
+
+In contrast agile team define success differently:
+- success is delivering value
+- agile teams actively change their plans to increase this value
+
+### People-oriented rather than process-oriented
+- Heavyweight processes tried to prevent errors by carefully defining every aspect of software development. 
+- Individual skill became less important. In theory, you could apply the same process over and over, with different people, and get the same results.
+- In contrast Agile says people are the most important factor in software development. (all aspects of their humanity)
+1. team work
+2. how safe is it to speak up for them
+3. Motivation
+
+- agile teams also have a process. But it's in the service of the humans
+
+#### Exercise
+1. how many values and principals relate to delivering valuable software and adapting feedback?
+2. Which values and principals relate to putting people first?
+
+### Why Agile won
+
+- Phase-based processes are no inherently broken
+- they have their flaws, but if the processes are kept slim, waterfall-style methods can work.
+- the problem was the heavyweight approaches
+- the process designed to prevent problems actually problems
+- to predict how software will work before you use it is hard
+- therefore it's critical to get working software in front of people
+- get feedback and learn and respond is at the heart of Agile
+- in contrast heavyweight process can take years before one can use it
+- They even had a dedicted part of the process (Change Control Board) to prevent changes. ("Yes, but it will cost")
+- Software was shipped that customers did not need
+- agile teams make software visible (software instead of documents)
+- That it's why everybody wanted Agile 
+
+### A Typical Heavyweight Failure
+- 2005, the FBI wasted $104.5 millon dollor
+- a project to replace the bureau's case management software
+- it started 2001 and took 4 years
+- 2003 the FBI discovered that the software was unusable
+- the contractor ask for another year and $56 millon
+- 2004 the project was cancelled
+
+### Why agile fails
+
+- instead of "Let's get better results by adapting and putting people first" orga leaders start saying ".. Get me some Agile"
+- companies want to have better results, more visibilty, fewer business failures
+- but you can't buy agile
+- what leaders can buy are the outward signs of Agile:
+1. stand-up meetings
+2. tools
+3. stories
+3. certificaion
+- uncomfortable ideas like adaptive planning and people-centric are ignored
+
+### Waterfall vs. Agile
+
+![](agile_water.png)
+
+### Agile Workeflow
+
+![](agile_workflow.png)
+
+### What are stories, epics, and initiatives?
+
+- **Stories**, also called “user stories,” are short requirements or requests written from the perspective of an end user.
+- **Epics** are large bodies of work that can be broken down into a number of smaller tasks (called stories).
+- **Initiatives** are collections of epics that drive toward a common goal.
+
+### User Stories
+
+- A user story is the smallest unit of work in an agile framework. 
+- User stories describe the why and the what behind the day-to-day work of development team members, often expressed as persona + need + purpose. 
+
+### Example of epics in initiatives
+
+Let’s say your rocket ship company wants to decrease the cost per launch by 5% this year. That’s a great fit for an initiative, as no single epic could likely achieve that big of a goal. Within that initiative, there would be epics such as, “Decrease launch-phase fuel consumption by 1%,” and “Turn all thermostats down from 71 to 69 degrees.”
 
 ## Project Management
 
@@ -137,7 +216,5 @@ A project can be evaluated on many criteria:
 - What defines a successful project is likely to change based on the type of project. 
 - (It is important to define what project success means during the initiation and planning phases of a project.)
 
-## Waterfall versus Agile
 
-### Waterfall
 
