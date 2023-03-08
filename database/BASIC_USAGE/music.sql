@@ -93,7 +93,7 @@ where instrument in ('Guitar', 'Saxophone', 'Cello', 'Violin', 'Harp')
 limit 6;
 
 --Task14
-truncate table musician;
+-- truncate table musician;
 select * from musician;
 
 
