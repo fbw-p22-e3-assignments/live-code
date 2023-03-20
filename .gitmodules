@@ -7,3 +7,6 @@
 [submodule "python-basic/OOP-PRACTICE/3-oopii-python-oop_in_practice-password_generator-pietowDCI"]
 	path = python-basic/OOP-PRACTICE/3-oopii-python-oop_in_practice-password_generator-pietowDCI
 	url = git@github.com:fbw-p22-e3-assignments/3-oopii-python-oop_in_practice-password_generator-pietowDCI.git
+[submodule "database/ADVANCED_SQL/Python-database-advanced_sql-subqueries"]
+	path = database/ADVANCED_SQL/Python-database-advanced_sql-subqueries
+	url = git@github.com:dci-python-course/Python-database-advanced_sql-subqueries.git
