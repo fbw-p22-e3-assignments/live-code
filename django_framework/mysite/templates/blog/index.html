@@ -1,0 +1,16 @@
+{% extends 'blog/base.html' %}
+
+{% block title %} Home {% endblock %}
+
+{% block content %}
+    <h1>{{ welcome_text|lower }}</h1>
+    <h3>This is a list of our posts</h3>
+    <ul>
+        {% for post in all_posts %}
+            <li>
+                <a href="{{ post.get_absolute_url }}">{{post.title}} - {{post.author}}</a>
+                <p>{{post.body}}</p>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

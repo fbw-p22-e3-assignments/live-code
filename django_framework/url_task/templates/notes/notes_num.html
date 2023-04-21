@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ note_id }}</title>
+</head>
+<body>
+    <h1> Note number {{ note_id }}</h1>
+    <h4>{{ note.section }}</h4>  
+    <p>{{ note.text }}</p>
+    <a href="{% url 'notes-by-num' note_id=note_id|add:-1 %}">Previous Note</a> 
+    <a>Back to home</a>
+    <a href="{% url 'notes-by-num' note_id=note_id|add:1 %}">Next Note</a>
+</body>
+</html>
