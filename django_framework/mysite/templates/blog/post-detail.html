@@ -7,4 +7,28 @@
     <h4 class="pricing-header">{{ post.title }}</h4>
     <p>{{ post.body }}</p>
     <p class="post-author"> - {{ post.author }}</p>
+    <hr>
+    <hr>
+    {% with comments.count as total_comments %}
+        <h4>{{ total_comments }} comment{{ total_comments|pluralize }}</h4>
+    {% endwith %}
+
+    {% if new_comment %}
+        <h2> Your comment has been added!</h2>
+    {% else %}
+        <form method="post">
+            {% csrf_token %}
+            {{ comment_form.name.label }}
+            {{ comment_form.name }}
+            {{ comment_form.email }}
+            {{ comment_form.body }}
+            <input type="submit" value="Create Comment">
+        </form>
+    {% endif %}
+
+    {% for comment in comments %}
+        <h5>Comment by {{ comment.name }} created on {{ comment.created }}</h5>
+        <p>{{ comment.body }}</p>
+    {% endfor %}
+
 {% endblock %}

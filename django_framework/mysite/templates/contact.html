@@ -1,0 +1,17 @@
+{%  extends 'blog/base.html' %}
+
+{% block title %} Contact {% endblock %}
+
+{% block content %}
+
+<h4>{{text}}</h4>
+<form method="post">
+    {% csrf_token %}
+    {% if contact_form.errors %}
+        <h5></h5>
+    {% endif %}
+    {{ contact_form.as_p }}
+    <input type="submit" value="Submit">
+</form>
+
+{% endblock %}
