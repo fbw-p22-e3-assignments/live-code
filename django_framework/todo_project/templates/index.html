@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title%}
+Todo List
+{% endblock %}
+
+{% block content %}
+<table border="1">
+    <thead>
+        <td>Title</td>
+        <td>Content</td>
+        <td>Status</td>
+        <td>Created On</td>
+    </thead>
+    <tbody>
+        {% for item in todo_items %}
+        <tr>
+            <td>
+                <a href="{% url 'todo-detail' slug=item.slug id=item.id %}">
+                    {{ item.title }}
+                </a>
+            </td>
+            <td>{{ item.content }}</td>
+            <td>{{ item.status }}</td>
+            <td>{{ item.created_on }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

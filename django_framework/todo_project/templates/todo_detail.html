@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %} {{ todo_item.title }} {% endblock%}
+
+{% block content %}
+<h3>{{ todo_item.title }}</h3>
+<p>{{ todo_item.content }}</p>
+
+{% if todo_item.status == 0 %}
+<p>Not Done</p>
+{% else %}
+<p>Done</p>
+{% endif %}
+
+{% endblock %}
