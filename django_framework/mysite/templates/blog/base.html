@@ -12,6 +12,11 @@
 <body>
     <header>
         <h4>PythonBugs Blog</h4>
+        {% if user.is_authenticated %}
+        <a href="{% url 'account:logout' %}">Logout</a>
+        {% else %}
+        <a href="{% url 'account:login' %}">Login</a>
+        {% endif %}
         <hr>
     </header>
     <main>
@@ -21,7 +26,8 @@
     </main>
     <footer>
         <hr>
-        Copyright 2023
+        <p>Copyright 2023</p>
+        
     </footer>
 </body>
 </html>

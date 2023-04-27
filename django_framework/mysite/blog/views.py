@@ -4,6 +4,9 @@ from django.shortcuts import reverse, render, get_object_or_404
 from django.views.generic import View
 from .models import Post, Contact
 from .forms import CommentForm, ContactForm
+# Login required decorator
+from django.contrib.auth.decorators import login_required
+
 
 
 def home(request):
@@ -18,6 +21,7 @@ def home(request):
 #         blog_post = Post.objects.get(slug=slug)
 #         return render(request, 'blog/post-detail.html', {"post": blog_post})
 
+@login_required
 def post_detail(request, slug):
     blog_post = get_object_or_404(Post, slug=slug)
     
