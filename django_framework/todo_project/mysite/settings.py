@@ -74,12 +74,19 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": "todo_app",
+#         "USER": "todo_admin",
+#         "PASSWORD": "todo123",        
+#     }
+# }
+
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "todo_app",
-        "USER": "todo_admin",
-        "PASSWORD": "todo123",        
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": "db.sqllite3",       
     }
 }
 

@@ -12,4 +12,21 @@
 <p>Done</p>
 {% endif %}
 
+
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Submit">
+</form>
+
+<br>
+
+{% for comment in comments %}
+
+<h4>Name: {{ comment.name }}</h4>
+<h4>Email: {{ comment.email }}</h4>
+<h5>Comment: {{ comment.body }}</h5>
+
+{% endfor %}
+
 {% endblock %}
