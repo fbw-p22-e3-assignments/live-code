@@ -9,12 +9,13 @@
         <link rel="stylesheet" href="">
     </head>
     <body>
-        <h2> Register </h2>
-        
+        <h3>
+            Register
+        </h3>
         <form method="post">
             {% csrf_token %}
-            {{ user_form.as_p }}
-            <input type="submit"  value="Register">
+            {{ form.as_p }}
+            <input type="submit" value="Register">
         </form>
     </body>
 </html>

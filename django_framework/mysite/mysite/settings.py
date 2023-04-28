@@ -32,7 +32,6 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    # Auth apps should come first
     "account.apps.AccountConfig",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -128,8 +127,7 @@ STATICFILES_DIRS = [ BASE_DIR / 'static/' ]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-
-# Login redirections
+# Authentication settings
 LOGIN_REDIRECT_URL = 'blog:home'
 LOGIN_URL = 'account:login'
 LOGOUT_URL = 'account:logout'
