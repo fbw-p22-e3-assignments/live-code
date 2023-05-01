@@ -562,12 +562,9 @@ Let's add templates to your application to display posts in a user-friendly mann
 2. Create the following directories and files inside in root directory of your project:
 
         ├── templates/
-            ├── base.html
             └── blog/
+                ├── index.html
                 ├── post-detail.html
-                ├── post-list.html
-
-    The preceding structure will be the file structure for your templates. The `base.html` file will include the main HTML structure of the website and divide the content into the main content area. The `post-list.html` and `post-detail.html` files will inherit from the `base.html` file to render the blog post list and detail views, respectively.
 
     Django has a powerful template language that allows you to specify how data is displayed. It is based on template tags, template variables, and template filters:
 
@@ -577,56 +574,989 @@ Let's add templates to your application to display posts in a user-friendly mann
 
     > You can see all built-in template tags and filters at [`https://docs.djangoproject.com/en/4.2/ref/templates/builtins/`](https://docs.djangoproject.com/en/4.2/ref/templates/builtins/).
 
-    Edit the base.html file and add the following code:
+    1. Add the following code to `index.html`:
+
+        ```html
+            <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Home</title>
+        <body>
+            <header>
+                <h4>PythonBugs Blog</h4>
+                <hr>
+            </header>
+            <main>
+            <h1>{{ welcome_text|lower }}</h1>
+            <h3>This is a list of our posts</h3>
+            <ul>
+                {% for post in all_posts %}
+                    <li>
+                        <a href="{{ post.get_absolute_url }}">{{post.title}} - {{post.author}}</a>
+                        <p>{{post.body}}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        </main>
+        <footer>
+            <hr>
+            <p>Copyright 2023</p>
+            
+        </footer>
+        </body>
+        </html>
+        ```
+
+        * `{{ welcome_text|lower }}` returns the variable that was sent as context from the view, the `lower` filter is applied on it to make all the text lowercase.
+        * `all_posts` is a list of posts that was returned from the template so in order to display all posts individually we have to iterate(loop) over the list and deisplay each one individually. Hence, `{% for post in all_posts %}` and `{% endfor %}` With most(not all) django template tags (just like html tags) you have to have an opening and closing tag.
+        * Dot notation is used to access desired fields of the `Post` model `{{post.title}}`, `{{post.author}}` and `{{post.body}}`.
+        * We can access the `get_absolute_url` method we created for the post model in order to generate a link to each post `{{ post.get_absolute_url }}`.
+
+        Open the shell and execute the `python manage.py runserver` command to start the development server. Open [`http://127.0.0.1:8000/blog/`](http://127.0.0.1:8000/blog/) in your browser; you will see everything running:
+
+        ![Homepage](example_imgs/initial-landing-page.png)
+
+    2. Add the following code to `post-list.html`:
+
+        ```html
+            <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title></title>
+            
+        </head>
+        <body>
+            <header>
+                <h4>PythonBugs Blog</h4>
+                <hr>
+            </header>
+            <main>
+            <h4>{{ post.title }}</h4>
+            <p>{{ post.body }}</p>
+            <p> - {{ post.author }}</p>
+        </main>
+        <footer>
+            <hr>
+            <p>Copyright 2023</p>
+            
+        </footer>
+        </body>
+        </html>
+        ```
+
+        * We still use dot notation to access specific fields of the post. There is no need to iterate in this case as we are returning a single post from the view.
+
+        Open the shell and execute the `python manage.py runserver` command to start the development server. Open [`http://127.0.0.1:8000/blog/`](http://127.0.0.1:8000/blog/) in your browser; from the homepage click on any link you will see everything running as follows:
+
+        ![Post Page](example_imgs/initial-post-page.png)
+
+    **Template inheritance/extension**
+
+    * The most powerful – and thus the most complex – part of Django’s template engine is template inheritance. Template inheritance allows you to build a base “skeleton” template that contains all the common elements of your site and defines blocks that child templates can override.
+
+    Let’s look at template inheritance by adding a `base.html` file at the root of the `templates` directory:
+
+        ├── templates/
+            ├── base.html
+            └── blog/
+                ├── index.html
+                ├── post-detail.html
+
+    The preceding structure will be the file structure for your templates. The `base.html` file will include the main HTML structure of the website and divide the content into the main content area. The `index.html` and `post-detail.html` files will inherit from the `base.html` file to render the blog post list and detail views, respectively.
+
+    1. Edit the `base.html` file and add the following code:
+
+        ```html
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>{% block title %}{% endblock %}</title>
+        </head>
+        <body>
+            <div id="content">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </body>
+        </html>
+        ```
+
+        There are two `{% block %}` tags. These tell Django that you want to define a block in that area. Templates that inherit from this template can fill in the blocks with content. You have defined a block called title and a block called content.
+        > All the block tag does is to tell the template engine that a child template may override those portions of the template.
+
+    2. Let's edit the `index.html` file and make it look like the following:
+
+        ```html
+        {% extends "base.html" %}
+
+        {% block title %}My Blog{% endblock %}
+
+        {% block content %}
+            <h1>My Blog</h1>
+            {% for post in posts %}
+                <h2>
+                    <a href="{{ post.get_absolute_url }}">
+                        {{ post.title }}
+                    </a>
+                </h2>
+                <p>
+                    Published {{ post.publish }} by {{ post.author }}
+                </p>
+                {{ post.body|truncatewords:30|linebreaks }}
+            {% endfor %}
+        {% endblock %}
+        ```
+
+    3. Let's edit the `post-detail.html` file and make it look like the following:
+
+        ```html
+        {% extends 'base.html' %}
+        {% load static %}
+
+        {% block title%} {{ post.title }} {% endblock%}
+
+        {% block content%}
+            <h4>{{ post.title }}</h4>
+            <p>{{ post.body }}</p>
+            <p> - {{ post.author }}</p>
+        {% endblock %}
+        ```
+
+        > With the {% extends %} template tag, you tell Django to inherit from the `blog/base.html` template. Then, you fill the title and content blocks of the base template with content. You iterate through the posts and display their title, date, author, and body, including a link in the title to the canonical URL of the post. In the body of the post, you apply two template filters: `truncatewords` truncates the value to the number of words specified, and `linebreaks` converts the output into HTML line breaks. You can concatenate as many template filters as you wish; each one will be applied to the output generated by the preceding one.
+
+    Open the shell and execute the `python manage.py runserver` command to start the development server. Open [`http://127.0.0.1:8000/blog/`](http://127.0.0.1:8000/blog/) in your browser; you will see everything running. Note that you need to have some posts with the `Published` status to show them here.
+
+    You should see still see the normal homepage:
+
+    ![Homepage](example_imgs/initial-landing-page.png)
+
+### Referencing static files in templates
+
+Your project is likely to use static resources, including JavaScript, CSS, and images. Because the location of these files might not be known (or might change), Django allows you to specify the location in your templates relative to the `STATIC_URL` global setting.
+
+1. Configuring static files
+
+    * Make sure that `django.contrib.staticfiles` is included in your `INSTALLED_APPS`.
+
+    * In your settings file, define `STATIC_URL`, for example:
+
+        ```python
+        STATIC_URL = 'static/'
+        ```
+
+2. Create a directory called `static` at the root of your project and copy the [`css`](resources/css/), [`js`](resources/js/) and [`images`](resources/images/) folders from [resources](resources):
+
+        ├── static/
+                ├── css/
+                └── images/
+                └── js/
+
+    > We will use the these files for the development of our blog to make look a bit nicer.
+
+3. Add the CSS and JS files to the `base.html` template:
 
     ```html
     {% load static %}
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
-        <title>{% block title %}{% endblock %}</title>
-        <link href="{% static "css/blog.css" %}" rel="stylesheet">
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- ADD  CSS STATIC FILES -->
+        <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+        <title>{% block title %}  {% endblock %}</title>
     </head>
     <body>
-        <div id="content">
+        <header>
+            <h4>PythonBugs Blog</h4>
+            <hr>
+        </header>
+        <main>
             {% block content %}
+            <!-- Content goes here -->
             {% endblock %}
-        </div>
+        </main>
+        <footer>
+            <hr>
+            <p>
+                Copyright &copy;
+                <script>document.write(new Date().getFullYear());</script>
+                PythonBugs
+            </p>
+            
+        </footer>
+        <!-- ADD  CSS STATIC FILES -->
+        <script src="{% static 'js/jquery-3.4.1.min.js' %}"></script>
+        <script src="{% static 'js/popper.min.js' %}"></script>
+        <script src="{% static 'js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/custom.js' %}"></script>
     </body>
     </html>
     ```
 
+    This will add CSS and JavaScript globally to our templates meaning it have to be repeated for each page. Unless there is a static file that is specific to a template.
+
+    * We also add some JavaScript to get the current year in the footer:
+
+        ```html
+        <script>document.write(new Date().getFullYear());</script>
+        ```
+
     `{% load static %}` tells Django to load the static template tags that are provided by the `django.contrib.staticfiles` application, which is contained in the `INSTALLED_APPS` setting. After loading them, you are able to use the `{% static %}` template tag throughout this template. With this template tag, you can include the static files, such as the blog.css file
 
-    There are two `{% block %}` tags. These tell Django that you want to define a block in that area. Templates that inherit from this template can fill in the blocks with content. You have defined a block called title and a block called content.
+    > We will now be able to style our templates using the CSS and JavaScript with just added
 
-    Let's edit the post-list.html file and make it look like the following:
+4. Styling the header
+
+    Update the `<header>`  tag of the `base.html` template to look as follows:
 
     ```html
-    {% extends "blog/base.html" %}
+    <header>
+        <div class="container">
+            <nav class="site-nav">
+              <div class="row justify-content-between align-items-center">
+                <div class="d-none d-lg-block col-lg-3 top-menu">
+                </div>
+                <div class="col-3 d-lg-block col-md-6 col-lg-6 text-lg-center logo">
+                  <a href="">Python<span class="text-primary">Bugs</span></a>
+                </div>
+                <div class="col-9 col-md-6 col-lg-3 text-right top-menu">      
+                </div>
+              </div>
+              <div class="d-none d-lg-block row align-items-center py-3">
+                <div class="col-12 col-sm-12 col-lg-12 site-navigation text-center">
+                  <ul class="js-clone-nav d-none d-lg-inline-block text-left site-menu">
+                    <li><a href="{% url 'blog:home' %}">Home</a></li>
+                    <li><a href="#">Contact</a></li>
+                  </ul>
+                </div>
+      
+              </div>  
+            </nav> <!-- END nav -->
+          </div> <!-- END container -->
+    </header>
+    ```
 
-    {% block title %}My Blog{% endblock %}
+5. Styling the footer
+
+    Update the `<footer>`  tag of the `base.html` template to look as follows:
+
+    ```html
+    <footer class="site-footer">
+        <div class="container">
+            <div class="row justify-content-center copyright">
+                <div class="col-lg-7 text-center">      
+                    <div class="widget">
+                        <p>
+                            Copyright &copy;
+                            <script>document.write(new Date().getFullYear());</script>
+                            PythonBugs 
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    ```
+
+    Open [`http://127.0.0.1:8000/blog/`](http://127.0.0.1:8000/blog/) in your browser; The header and footer should now be styled.
+
+    ![Styled Header and Footer](example_imgs/styled-base.png)
+
+6. Styling the Homepage:
+
+    Update the `index.html` template to look as follows:
+
+    ```html
+    {% extends 'blog/base.html' %}
+    {% load static %}
+
+    {% block title %} Home {% endblock %}
 
     {% block content %}
-        <h1>My Blog</h1>
-        {% for post in posts %}
-            <h2>
-                <a href="{{ post.get_absolute_url }}">
-                    {{ post.title }}
-                </a>
-            </h2>
-            <p>
-                Published {{ post.publish }} by {{ post.author }}
-            </p>
-            {{ post.body|truncatewords:30|linebreaks }}
-        {% endfor %}
+        <div class="section-latest">
+            <div class="container">
+                <h1>{{ welcome_text|title }}</h1>
+
+                <div class="row gutter-v1 align-items-stretch mb-5">
+                    <div class="col-12">
+                        <h2 class="section-title">Latest Posts</h2>
+                    </div>
+                    {% for post in all_posts %}
+                        <div class="col-md-9 pr-md-5">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="post-entry horizontal d-md-flex">
+                                        <div class="media">
+                                            <img src="{% static 'images/img_h_3.jpg' %}" alt="Image" class="img-fluid">
+                                        </div>
+                                        <div class="text">
+                                            <div class="meta">
+                                                <span>{{post.created}}</span>
+                                                <span>&bullet;</span>
+                                                <span>{{post.author}}</span>
+                                            </div>
+                                            <h2>
+                                                <a href="{{ post.get_absolute_url }}">
+                                                    {{post.title}}
+                                                </a>
+                                            </h2>
+                                            <p>{{ post.body|truncatewords:30|linebreaks }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>    
+            </div>
+        </div>
     {% endblock %}
     ```
 
-    With the {% extends %} template tag, you tell Django to inherit from the `blog/base.html` template. Then, you fill the title and content blocks of the base template with content. You iterate through the posts and display their title, date, author, and body, including a link in the title to the canonical URL of the post. In the body of the post, you apply two template filters: `truncatewords` truncates the value to the number of words specified, and `linebreaks` converts the output into HTML line breaks. You can concatenate as many template filters as you wish; each one will be applied to the output generated by the preceding one.
+    Open [`http://127.0.0.1:8000/blog/`](http://127.0.0.1:8000/blog/) in your browser; The header and footer should now be styled.
 
-    Open the shell and execute the python manage.py runserver command to start the development server. Open [`http://127.0.0.1:8000/blog/`](http://127.0.0.1:8000/blog/) in your browser; you will see everything running. Note that you need to have some posts with the `Published` status to show them here.
+    ![Styled Homepage](example_imgs/styled-homepage.png)
 
-    You should see something like this:
+7. Styling the Post Detail page:
 
-    ![Homepage](example_imgs/homepage.png)
+    Update the `post-detail.html` template to look as follows:
+
+    ```html
+    {% extends 'blog/base.html' %}
+    {% load static %}
+
+    {% block title%} {{ post.title }} {% endblock%}
+
+    {% block content%}
+        <div class="site-hero py-5 bg-light mb-5">
+            <div class="container">
+                <div class="row align-items-center justify-content-between">
+                    <div class="col-lg-12 text-center">
+                        <h1 class="text-black mb-0">{{ post.title }}</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container article">
+            <div class="row justify-content-center align-items-stretch"> 
+                <article class="col-lg-8 order-lg-2 px-lg-5">
+                    <p>{{ post.body|linebreaks }}</p>
+                    <div class="post-single-navigation d-flex align-items-stretch">
+                        <a href="#" class="mr-auto w-50 pr-4">
+                            <span class="d-block">{{ post.created }}</span>
+                            By: {{ post.author|title }}
+                        </a>
+                    </div> 
+                </article>
+            </div>
+        </div>
+    {% endblock %}
+    ```
+
+    Open [`http://127.0.0.1:8000/blog/`](http://127.0.0.1:8000/blog/) in your browser; Click on one of the posts and you should see:
+
+    ![Styled Homepage](example_imgs/styled-details-page.png)
+
+### Forms
+
+An HTML Form is a group of one or more fields/widgets on a web page, which can be used to collect information from users for submission to a server. Forms are a flexible mechanism for collecting user input because there are suitable widgets for entering many different types of data, including text boxes, checkboxes, radio buttons, date pickers and so on. Forms are also a relatively secure way of sharing data with the server, as they allow us to send data in POST requests with cross-site request forgery protection.
+
+Django has a built-in forms framework that allows you to create forms in an easy manner. The forms framework makes it simple to define the fields of your form, specify how they have to be displayed, and indicate how they have to validate input data. The Django forms framework offers a flexible way to render forms and handle data.
+Django comes with two base classes to build forms:
+
+* `Form`: Allows you to build standard forms
+* `ModelForm`: Allows you to build forms tied to model instances
+
+**Creating a comment system**
+
+You will build a comment system wherein users will be able to comment on posts. To build the comment system, you need to do the following:
+
+* Create a model to save comments
+* Create a form to submit comments and validate the input data
+* Add a view that processes the form and saves a new comment to the database
+* Edit the post detail template to display the list of comments and the form to add a new comment
+
+1. Let's build a model to store comments. Open the `models.py` file of your `blog` application and add the following code:
+
+    ```python
+    class Comment(models.Model):
+        post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+        name = models.CharField(max_length=80)
+        email = models.EmailField()
+        body = models.TextField()
+        created = models.DateTimeField(auto_now_add=True)
+        updated = models.DateTimeField(auto_now=True)
+        active = models.BooleanField(default=True)
+
+        class Meta:
+            ordering = ('created',)
+
+        def __str__(self):
+            return f'Comment by {self.name} on {self.post}'
+    ```
+
+    This is the `Comment` model. It contains a `ForeignKey` to associate a comment with a single post. This many-to-one relationship is defined in the `Comment` model because each comment will be made on one post, and each post may have multiple comments. The `related_name` attribute allows you to name the attribute that you use for the relationship from the related object back to this one. After defining this, you can retrieve the post of a comment object using `comment.post` and retrieve all comments of a post using `post.comments.all()`. If you don't define the `related_name` attribute, Django will use the name of the model in lowercase, followed by `_set` (that is, `comment_set`) to name the relationship of the related object to the object of the model, where this relationship has been defined.
+
+    You have included an `active` Boolean field that you will use to manually deactivate inappropriate comments. You use the `created` field to sort comments in a chronological order by default.
+
+    > You can learn more about many-to-one relationships at [`https://docs.djangoproject.com/en/4.2/topics/db/examples/many_to_one/`](https://docs.djangoproject.com/en/4.2/topics/db/examples/many_to_one/).
+
+    The new `Comment` model that you just created is not yet synchronized into the database. Run the following command to generate a new migration that reflects the creation of the new model:
+
+    ```shell
+    python manage.py makemigrations blog
+    ```
+
+    You should see the following output:
+
+    ```shell
+        Migrations for 'blog':
+            blog/migrations/0002_comment.py
+                - Create model Comment
+    ```
+
+
+    Django has generated a `0002_comment.py` file inside the `migrations/` directory of the `blog` application. Now, you need to create the related database schema and apply the changes to the database. Run the following command to apply existing migrations:
+
+    ```shell
+    python manage.py migrate
+    ```
+
+    You will get an output that includes the following line:
+
+    ```shell
+    Applying blog.0002_comment... OK
+    ```
+
+    The migration that you just created has been applied; now a `blog_comment` table exists in the database.
+
+    Open the `admin.py` file of the `blog` application, import the `Comment` model, and add the following `ModelAdmin` class:
+
+    ```python
+    from .models import Post, Comment
+
+
+    @admin.register(Comment)
+    class CommentAdmin(admin.ModelAdmin):
+        list_display = ('name', 'email', 'post', 'created', 'active')
+        list_filter = ('active', 'created', 'updated')
+        search_fields = ('name', 'email', 'body')
+    ```
+
+2. Create a `forms.py` file inside the directory of your `blog` application and make it look like this:
+
+    You will need to use the `ModelForm` class because you have to build a form dynamically from your `Comment` model.
+
+    ```python
+    from django import forms
+    from .models import Comment
+
+
+    class CommentForm(forms.ModelForm):
+        
+        class Meta:
+        model = Comment
+        fields = ('name', 'email', 'body')
+    ```
+
+    To create a form from a model, you just need to indicate which model to use to build the form in the `Meta` class of the form. Django introspects the model and builds the form dynamically for you.
+
+    Each model field type has a corresponding default form field type. The way that you define your model fields is taken into account for form validation. By default, Django builds a form field for each field contained in the model. However, you can explicitly tell the framework which fields you want to include in your form using a fields `list`, or define which fields you want to exclude using an exclude list of fields. For your `CommentForm` form, you will just use the `name`, `email`, and `body` fields, because those are the only fields that your users will be able to fill in.
+
+3. Add a view that processes the form and saves a new comment to the database:
+
+    You will use the post detail view to instantiate the form and process it, in order to keep it simple. Edit the `views.py` file, add imports for the `Comment` model and the `CommentForm` form, and modify the `post_detail` view to make it look like the following:
+
+    ```python
+    from .models import Post, Comment
+    from .forms import CommentForm
+
+
+    def post_detail(request, slug):
+    post = get_object_or_404(Post, slug=slug, status='published')
+
+    # List of active comments for this post
+    comments = post.comments.filter(active=True)
+
+    new_comment = None
+
+    if request.method == 'POST':
+        # A comment was posted
+        comment_form = CommentForm(data=request.POST)
+        if comment_form.is_valid():
+            # Create Comment object but don't save to database yet
+            new_comment = comment_form.save(commit=False)
+            # Assign the current post to the comment
+            new_comment.post = post
+            # Save the comment to the database
+            new_comment.save()
+    else:
+        comment_form = CommentForm()
+    return render(request, 'blog/post-detail.html', {'post': post,'comments': comments, 'new_comment': new_comment, 'comment_form': comment_form})
+    ```
+
+    You used the `post_detail` view to display the post and its comments. You added a QuerySet to retrieve all active comments for this post, as follows:
+
+    ```python
+    comments = post.comments.filter(active=True)
+    ```
+
+    You build this QuerySet, starting from the post object. Instead of building a QuerySet for the `Comment` model directly, you leverage the `post` object to retrieve the related `Comment` objects. You use the manager for the related objects that you defined as `comments` using the `related_name` attribute of the relationship in the `Comment` model. You use the same view to let your users add a new comment. You initialize the `new_comment` variable by setting it to `None`. You will use this variable when a new comment is created.
+
+    You build a form instance with `comment_form = CommentForm()` if the view is called by a `GET` request. If the request is done via `POST`, you instantiate the form using the submitted data and validate it using the `is_valid()` method. If the form is invalid, you render the template with the validation errors. If the form is valid, you take the following actions:
+
+    1. You create a new `Comment` object by calling the form's `save()` method and assign it to the `new_comment` variable, as follows:
+
+        ```python
+        new_comment = comment_form.save(commit=False)
+        ```
+
+        The `save()` method creates an instance of the model that the form is linked to and saves it to the database. If you call it using `commit=False`, you create the model instance, but don't save it to the database yet. This comes in handy when you want to modify the object before finally saving it, which is what you will do next.
+
+        > The `save()` method is available for `ModelForm` but not for `Form` instances, since they are not linked to any model.
+
+    2. You assign the current post to the comment you just created:
+
+        ```python
+        new_comment.post = post
+        ```
+
+        By doing this, you specify that the new comment belongs to this post.
+
+    3. Finally, you save the new comment to the database by calling its `save()` method:
+
+        ```python
+        new_comment.save()
+        ```
+
+    Your view is now ready to display and process new comment
+
+4. Edit the post detail template to display the list of comments and the form to add a new comment
+
+    You have created the functionality to manage comments for a post. Now you need to adapt your `post-detail.html` template to do the following things:
+
+    * Display the total number of comments for a post
+    * Display the list of comments
+    * Display a form for users to add a new comment
+
+    1. add the total comments. Open the `post-detail.html` template and append the following code to the content block:
+
+        ```html
+        <div class="pt-5">
+            {% with comments.count as total_comments %}
+                <h3 class="mb-5">{{ total_comments }} Comment{{ total_comments|pluralize }}</h3>
+            {% endwith %}
+        </div>
+        ```
+
+        You are using the Django ORM in the template, executing the QuerySet `comments.count()`. Note that the Django template language doesn't use parentheses for calling methods. The `{% with %}` tag allows you to assign a value to a new variable that will be available to be used until the `{% endwith %}` tag.
+
+        > The `{% with %}` template tag is useful for avoiding hitting the database or accessing expensive methods multiple times.
+
+        You use the `pluralize` template filter to display a plural suffix for the word "comment," depending on the `total_comments` value. Template filters take the value of the variable they are applied to as their input and return a computed value. The `pluralize` template filter returns a string with the letter "s" if the value is different from 1. The preceding text will be rendered as *0 comments*, *1 comment*, or *N comments*.
+
+    2. Let's include the list of comments. Append the following lines to the `post-detail.html` template below the preceding code:
+
+        ```html
+        <ul class="comment-list">
+            {% for comment in comments %}
+                <li class="comment">
+                    <div class="vcard bio">
+                        <img src="{% static 'images/img_h_3.jpg' %}" alt="Image placeholder">
+                    </div>
+                    <div class="comment-body">
+                        <h3>{{ comment.name }}</h3>
+                        <div class="meta">{ comment.created }}</div>
+                        <p>{{ comment.body|linebreaks }}</p>
+                    </div>
+                </li>
+            {% empty %}
+                <p>There are no comments yet.</p>
+            {% endfor %}
+        </ul>
+        <!-- END comment-list -->
+        ```
+
+        You use the `{% for %}` template tag to loop through comments. You display a default message if the `comments` list is empty, informing your users that there are no comments on this post yet. Then, you display the name of the user who posted the comment, the date, and the body of the comment.
+
+    3. Render the form or display a success message instead when it is successfully submitted. Add the following lines just below the preceding code:
+
+        ```html
+        {% if new_comment %}
+            <h2> Your comment has been added!</h2>
+        {% else %}
+        <div class="comment-form-wrap pt-5">
+            <h3 class="mb-5">Leave a comment</h3>
+            <form method='post'>
+                {% csrf_token %}
+                {{ comment_form.as_p }}
+                <p>
+                    <input type="submit" value="Post Comment" class="btn btn-primary btn-md">
+                </p>
+            </form>
+        </div>
+        {% endif %}
+        ```
+
+        The code is pretty straightforward: if the `new_comment` object exists, you display a success message because the comment was successfully created. Otherwise, you render the form with a paragraph, `<p>`, element for each field and include the CSRF token required for `POST` requests.
+
+        This is the template to display the form or a success message when it's sent. As you will notice, you create the HTML form element, indicating that it has to be submitted by the POST method:
+
+        ```html
+        <form method="post">
+        ```
+
+        The `{% csrf_token %}` template tag introduces a hidden field with an autogenerated token to avoid **cross-site request forgery (CSRF)** attacks. These attacks consist of a malicious website or program performing an unwanted action for a user on your site. You can find more information about this at ['https://owasp.org/www-community/attacks/csrf'](https://owasp.org/www-community/attacks/csrf).
+
+        The preceding tag generates a hidden field that looks like this:
+
+        ```html
+        <input type='hidden' name='csrfmiddlewaretoken' value='26JjKo2lcEtYkGoV9z4XmJIEHLXN5LDR' />
+        ```
+
+        > By default, Django checks for the CSRF token in all `POST` requests.Remember to include the `csrf_token` tag in all forms that are submitted via `POST`.
+
+    Open http://127.0.0.1:8000/blog/ in your browser and click on a post title to take a look at its detail page. You will see something like the following screenshot:
+
+    ![Comment Section](example_imgs/comment-section.png)
+
+### Authentication
+
+Django comes with a built-in authentication framework that can handle user authentication, sessions, permissions, and user groups. The authentication system includes views for common user actions such as log in, log out, password change, and password reset.
+The authentication framework is located at `django.contrib.auth` and is
+used by other Django `contrib` packages.
+When you create a new Django project using the `startproject` command, the authentication framework is included in the default settings of your project. It consists of the `django.contrib.auth` application and the following two middleware classes found in the `MIDDLEWARE` setting of your project:
+
+* `AuthenticationMiddleware`: Associates users with requests using sessions
+* `SessionMiddleware`: Handles the current session across requests
+
+Middleware are classes with methods that are globally executed during the request or response phase.
+
+The authentication framework also includes the following models:
+
+* `User`: A user model with basic fields; the main fields of this model are `username`, `password`, `email`, `first_name`, `last_name`, and `is_active`
+* `Group`: A group model to categorize users
+* `Permission`: Flags for users or groups to perform certain actions
+
+The framework also includes default authentication views and forms
+
+1. Create an app for authentication
+
+    Use the following commands create a new application named `account`:
+
+    ```shell
+    django-admin startapp account
+    ```
+
+    Add the new application to your project by adding the application's name to the `INSTALLED_APPS` setting in the `settings.py` file. Place it in the `INSTALLED_APPS` list before any of the other installed apps:
+
+    ```python
+    INSTALLED_APPS = [
+        'account.apps.AccountConfig',
+        # ...
+    ]
+    ```
+
+    Django authentication templates will be defined later on. By placing your application first in the `INSTALLED_APPS` setting, you ensure that your authentication templates will be used by default instead of any other authentication templates contained in other applications. Django looks for templates by order of application appearance in the `INSTALLED_APPS` setting.
+
+    Run the next commands to sync the database with the models of the default applications included in the `INSTALLED_APPS` setting:
+
+    ```shell
+    python manage.py makemigrations
+    python manage.py migrate
+    ```
+
+2. Configuring Authentication settings
+
+    Edit the `settings.py` file of your project and add the following code to it:
+
+    ```python
+    LOGIN_REDIRECT_URL = 'blog:home'
+    LOGIN_URL = 'account:login'
+    LOGOUT_URL = 'account:logout'
+    ```
+
+    * `LOGIN_REDIRECT_URL`: Tells Django which URL to redirect the user to after a successful login if no next parameter is present in the request
+    * `LOGIN_URL`: The URL to redirect the user to log in (for example, views using the login_required decorator)
+    * `LOGOUT_URL`: The URL to redirect the user to log out
+
+3. Create authentication URLs
+
+    Django also provides the authentication URL patterns via `django.contrib.auth.urls`. Create a new `urls.py` file in your account application directory and add the following code to it:
+
+    ```python
+    from django.urls import path, include
+
+    app_name = "account"
+
+    urlpatterns = [
+        path('', include('django.contrib.auth.urls')),
+    ]
+    ```
+
+    Edit the main urls.py file located in your bookmarks project directory, import include, and add the URL patterns of the account application, as follows:
+
+    ```python
+    from django.urls import path, include
+    from django.contrib import admin
+
+    urlpatterns = [
+        path('admin/', admin.site.urls),
+        path('account/', include('account.urls', namespace="account")),
+    ]
+    ```
+
+    > You can see the authentication URL patterns included at [`https://github.com/django/django/blob/stable/3.0.x/django/contrib/auth/urls.py`](https://github.com/django/django/blob/stable/3.0.x/django/contrib/auth/urls.py).
+
+4. Create authentication templates
+
+    Create a new directory inside the templates directory and name it `registration`. This is the default path where the Django authentication views expect your authentication templates to be.
+    The `django.contrib.admin` module includes some of the authentication templates that are used for the administration site. You have placed the account application at the top of the `INSTALLED_APPS` setting so that Django uses your templates by default instead of any authentication templates defined in other applications. Create a new file inside the templates/registration directory, name it `login.html`, and add the following code to it:
+
+    ```html
+    {% extends "base.html" %}
+
+    {% block title %}Login{% endblock %}
+
+    {% block content %}
+        <div class="site-hero py-5 bg-light mb-0">
+            <div class="container">
+                <div class="row align-items-center justify-content-between">
+                    <div class="col-lg-12 text-center">
+                        <h1 class="text-black mb-0">Login</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="section-grey bg-light">
+            <div class="container">
+                <div class="block">
+                    <div class="row justify-content-center">
+                        <div class="col-md-8 col-lg-8 pb-4 text-center">
+                            <form method="post">
+                                {% csrf_token %}
+                                {{ form.as_p }}     
+                                <input type="submit" class="btn btn-primary-hover-outline" value="Login">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endblock %}
+    ```
+
+    * Django uses the `AuthenticationForm` form located at `django.contrib.auth.forms` by default. This form tries to authenticate the user and raises a validation error if the login was unsuccessful. In this case, you can look for errors using `{% if form.errors %}` in the template to check whether the credentials provided are wrong.
+
+    Create a `logged_out.html` template inside the `registration` template directory and make it look like this:
+
+    ```html
+    {% extends "base.html" %}
+
+    {% block title %}Logged out{% endblock %}
+
+    {% block content %}
+        <div class="site-hero py-5 bg-light mb-0">
+            <div class="container">
+                <div class="row align-items-center justify-content-between">
+                    <div class="col-lg-12 text-center">
+                        <h1 class="text-black mb-0"> You have successfully logged out!</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="section-grey bg-light">
+            <div class="container">
+                <div class="block">
+                    <div class="row justify-content-center">
+                        <div class="col-md-8 col-lg-8 pb-4 text-center">
+                            <a href="{% url 'account:login' %}" class="btn btn-primary-hover-outline"> 
+                                Go to login
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endblock %}
+    ```
+
+    This is the template that Django will display after the user logs out. After adding the URL patterns and the templates for login and logout views, your website is now ready for users to log in using Django authentication views.
+
+    Let's add a way for the user to navigate to login and logout in the `base.html`:
+
+    In the `<header>` tag just after the `<div>` containing "Python
+
+    ```html
+        <div class="container">
+      <nav class="site-nav">
+        <div class="row justify-content-between align-items-center">
+            <div class="d-none d-lg-block col-lg-3 top-menu">
+            </div>
+            <div class="col-3 d-lg-block col-md-6 col-lg-6 text-lg-center logo">
+              <a href="">Python<span class="text-primary">Bugs</span></a>
+            </div>
+            <div class="col-9 col-md-6 col-lg-3 text-right top-menu">
+              <div class="d-inline-flex align-items-center">
+              {% if request.user.is_authenticated %}
+              <a href="{% url 'account:logout' %}" class="d-inline-flex align-items-center">
+              <span>Logout</span>
+              </a>
+              {% else %}
+              <a href="{% url 'account:login' %}" class="d-inline-flex align-items-center">
+              <span>Login</span>
+              </a>
+              {% endif %}
+              </div>      
+            </div>
+          </div>
+          <div class="d-none d-lg-block row align-items-center py-3">
+            <div class="col-12 col-sm-12 col-lg-12 site-navigation text-center">
+              <ul class="js-clone-nav d-none d-lg-inline-block text-left site-menu">
+                <li><a href="{% url 'blog:home' %}">Home</a></li>
+                <li><a href="#">Contact</a></li>
+              </ul>
+            </div>
+          </div>  
+        </div>
+      </nav> <!-- END nav -->
+    </div> <!-- END container -->
+    ```
+
+    In the preceding code you check if the is logged in using `{% if request.user.is_authenticated %}` and render the logout link using `{% url 'account:logout' %}` otherwise you render the login link via `{% url 'account:login' %}`
+
+5. User registration
+
+    Let's create a simple view to allow user registration on your website. Initially, you have to create a form to let the user enter a username, their real name, and a password.
+
+    1. Create a `forms.py` file located inside the `account` application directory and add the following code to it:
+
+        ```python
+        from django import forms
+        from django.contrib.auth.models import User
+
+
+        class UserRegistrationForm(forms.ModelForm):
+            password = forms.CharField(label='Password', widget=forms.PasswordInput)
+            password2 = forms.CharField(label='Repeat password', widget=forms.PasswordInput)
+            
+            class Meta:
+                model = User
+                fields = ('username', 'first_name', 'email')
+
+            def clean_password2(self):
+                cd = self.cleaned_data
+                if cd['password'] != cd['password2']:
+                    raise forms.ValidationError("Passwords don't match.")
+                return cd['password2']
+        ```
+
+        You have created a model form for the user model. In your form, you include only the `username`, `first_name`, and `email` fields of the model. These fields will be validated based on their corresponding model fields. For example, if the user chooses a username that already exists, they will get a validation error because `username` is a field defined with `unique=True`.
+
+        You have added two additional fields—`password` and `password2`—for users to set their password and confirm it. You have defined a `clean_password2()` method to check the second password against the first one and not let the form validate if the passwords don't match. This check is done when you validate the form by calling its `is_valid()` method. You can provide a `clean_<fieldname>()` method to any of your form fields in order to clean the value or raise form validation errors for a specific field. Forms also include a general `clean()` method to validate the entire form, which is useful to validate fields that depend on each other. In this case, you use the field-specific `clean_password2()` validation instead of overriding the `clean()` method of the form. This avoids overriding other field-specific checks that the `ModelForm` gets from the restrictions set in the model (for example, validating that the `username` is unique).
+
+        Django also provides a `UserCreationForm` form that you can use, which resides in `django.contrib.auth.forms` and is very similar to the one you have created.
+
+    2. Edit the `views.py` file of the account application and add the following code to it:
+
+        ```python
+        from django.shortcuts import render, redirect
+        from .forms import UserRegistrationForm
+
+
+        def register(request):
+            if request.method == "POST":
+                registration_form = UserRegistrationForm(request.POST)
+                if registration_form.is_valid():
+                    # Create a new user object without saving it
+                    new_user = registration_form.save(commit=False)
+                    # Set the user password
+                    new_user.set_password(
+                        registration_form.cleaned_data['password'])
+                    # Save the user object
+                    new_user.save()
+                    return redirect('account:login')
+            else:
+                registration_form = UserRegistrationForm()
+            
+            return render(request, "account/register.html", {"form": registration_form})
+        ```
+
+        The view for creating user accounts is quite simple. For security reasons, instead of saving the raw password entered by the user, you use the `set_password()` method of the user model that handles hashing.
+
+    3. Edit the `urls.py` file of your account application and add the following URL pattern:
+
+        ```python
+        path('register/', views.register, name='register'),
+        ```
+
+    4. Create a new directory called `account` in the template directory, this is where we will store templates for the register view.
+
+        Add a template file in the `account` template directory and name it register.html. Add the following code to it:
+
+        ```html
+        {% extends "base.html" %}
+
+        {% block title %}Register{% endblock %}
+
+        {% block content %}
+            <div class="site-hero py-5 bg-light mb-0">
+                <div class="container">
+                    <div class="row align-items-center justify-content-between">
+                        <div class="col-lg-12 text-center">
+                            <h1 class="text-black mb-0">Register</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="section-grey bg-light">
+                <div class="container">
+                    <div class="block">
+                        <div class="row justify-content-center">
+                            <div class="col-md-8 col-lg-8 pb-4 text-center">
+                                <form method="post">
+                                    {% csrf_token %}
+                                    {{ form.as_p }}     
+                                    <input type="submit" class="btn btn-primary-hover-outline" value="Register">
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endblock %}
+        ```
+
+        Now open http://127.0.0.1:8000/account/register/ in your browser. You will see the registration page you have created:
+
+        ![Register Page](example_imgs/register-page.png)
+
+    5. Add register URL to `base.html` template:
+
+        Locate the `{% else %}` tag in the `<header>` and add the following code:
+
+        ```html
+        <a href="{% url 'account:register' %}" class="d-inline-flex align-items-center btn btn-primary-hover-outline">
+            <span>Register</span>
+        </a>
+        ```
+
+        Now open http://127.0.0.1:8000/account/register/ in your browser. You will see the button you have added:
+
+        ![Register Page](example_imgs/complete-register.png)
+
+
+
+
+
+

@@ -32,13 +32,13 @@ def home(request):
 #         blog_post = Post.objects.get(slug=slug)
 #         return render(request, 'blog/post-detail.html', {"post": blog_post})
 
-@login_required
+
 def post_detail(request, slug):
     blog_post = get_object_or_404(Post, slug=slug)
     # request.session.pop('num_visits')
-    del request.session['num_visits']
+    # del request.session['num_visits']
     #  List of active comments
-    comments = blog_post.comments.filter(created=datetime.datetime.now())
+    comments = blog_post.comments.filter(active=True)
     
     new_comment = None
     
