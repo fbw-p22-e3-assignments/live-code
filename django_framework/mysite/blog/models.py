@@ -10,7 +10,7 @@ class Post(models.Model):
         ('published', 'Published'),
     )
     title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, unique_for_date='publish', null=False)
+    slug = models.SlugField(max_length=200, unique_for_date='publish', null=False, verbose_name="Slug")
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blog_posts')
     body = models.TextField()
     publish = models.DateTimeField(default=timezone.now)

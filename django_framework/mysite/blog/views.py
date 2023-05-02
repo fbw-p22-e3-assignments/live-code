@@ -14,16 +14,15 @@ def home(request):
     posts = Post.objects.all()
     
     # Getting session a session value and setting a default if its not present
-    num_visits = request.session.get('num_visits', 0)
+    # num_visits = request.session.get('num_visits', 0)
     
     # Creating a session variable
-    request.session['num_visits'] = num_visits + 1
+    # request.session['num_visits'] = num_visits + 1
     
-    request.session.set_expiry(10)
+    # request.session.set_expiry(10)
     
     return render(request, 'blog/index.html', {"welcome_text": text,
-                                               "all_posts": posts,
-                                               "num_visits": num_visits})
+                                               "all_posts": posts})
 
 
 # class PostDetail(View):
@@ -32,7 +31,7 @@ def home(request):
 #         blog_post = Post.objects.get(slug=slug)
 #         return render(request, 'blog/post-detail.html', {"post": blog_post})
 
-
+@login_required
 def post_detail(request, slug):
     blog_post = get_object_or_404(Post, slug=slug)
     # request.session.pop('num_visits')
