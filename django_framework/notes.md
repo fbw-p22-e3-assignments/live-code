@@ -1555,8 +1555,719 @@ The framework also includes default authentication views and forms
 
         ![Register Page](example_imgs/complete-register.png)
 
+### Sessions
 
+All communication between web browsers and servers is via HTTP, which is stateless. The fact that the protocol is stateless means that messages between the client and server are completely independent of each other — there is no notion of "sequence" or behavior based on previous messages. As a result, if you want to have a site that keeps track of the ongoing relationships with a client, you need to implement that yourself.
 
+Sessions are the mechanism used by Django (and most of the Internet) for keeping track of the "state" between the site and a particular browser. Sessions allow you to store arbitrary data per browser, and have this data available to the site whenever the browser connects. Individual data items associated with the session are then referenced by a "key", which is used both to store and retrieve the data.
 
+Django uses a cookie containing a special session id to identify each browser and its associated session with the site. The actual session data is stored in the site database by default (this is more secure than storing the data in a cookie, where they are more vulnerable to malicious users). You can configure Django to store the session data in other places (cache, files, "secure" cookies), but the default location is a good and relatively secure option.
 
+**Enabling sessions**
+
+Sessions are automatically created when you start a django project.
+
+The configuration is set up in the `INSTALLED_APPS` and `MIDDLEWARE` sections of the projects `settings.py`, as shown below:
+
+```python
+INSTALLED_APPS = [
+    # …
+    'django.contrib.sessions',
+    # …
+]
+
+MIDDLEWARE = [
+    # …
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    # …
+]
+```
+
+**Using sessions**
+
+You can access the session attribute within a view from the request parameter (an HttpRequest passed in as the first argument to the view). This session attribute represents the specific connection to the current user (or to be more precise, the connection to the current browser, as identified by the session id in the browser's cookie for this site).
+
+The session attribute is a dictionary-like object that you can read and write as many times as you like in your view, modifying it as wished. You can do all the normal dictionary operations, including clearing all data, testing if a key is present, looping through data, etc. Most of the time though, you'll just use the standard "dictionary" API to get and set values.
+
+The code fragments below show how you can get, set, and delete some data with the key "my_car", associated with the current session (browser).
+
+```python
+# Get a session value by its key (e.g. 'my_car'), raising a KeyError if the key is not present
+my_car = request.session['my_car']
+
+# Get a session value, setting a default if it is not present ('mini')
+my_car = request.session.get('my_car', 'mini')
+
+# Set a session value
+request.session['my_car'] = 'mini'
+
+# Delete a session value
+del request.session['my_car']
+```
+
+> One of the great things about Django is that you don't need to think about the mechanisms that tie the session to your current request in your view. If we were to use the fragments below in our view, we'd know that the information about `my_car` is associated only with the browser that sent the current request.
+
+**Saving session data**
+
+By default, Django only saves to the session database and sends the session cookie to the client when the session has been modified (assigned) or deleted. If you're updating some data using its session key as shown in the previous section, then you don't need to worry about this! For example:
+
+```python
+# This is detected as an update to the session, so session data is saved.
+request.session['my_car'] = 'mini'
+```
+
+If you're updating some information within session data, then Django will not recognize that you've made a change to the session and save the data (for example, if you were to change "wheels" data inside your "my_car" data, as shown below). In this case you will need to explicitly mark the session as having been modified.
+
+```python
+# Session object not directly modified, only data within the session. Session changes not saved!
+request.session['my_car']['wheels'] = 'alloy'
+
+# Set session as modified to force data updates/cookie to be saved.
+request.session.modified = True
+```
+
+As a simple real-world example we'll update our blog to tell the current user how many times they have visited the home page.
+
+1. Open `blog/views.py`, and add the lines that contain num_visits into `home():`
+
+    ```python
+    # Getting session a session value and setting a default if its not present
+    num_visits = request.session.get('num_visits', 0)
+    
+    # Creating a session variable
+    request.session['num_visits'] = num_visits + 1
+    ```
+
+    Here we first get the value of the `num_visits` session key, setting the value to `0` if it has not previously been set. Each time a request is received, we then increment the value and store it back in the session (for the next time the user visits the page).
+
+2. Add `num_visits` as a context variable in the render function
+
+    ```python
+    return render(request, 'blog/index.html', {"welcome_text": text,
+                                               "all_posts": posts,
+                                               "num_visits": num_visits})
+    ```
+
+     The `num_visits` variable is passed to the template in our context variable.
+
+3. Add `num_visits` to the bottom of the `blog/index.html` template:
+
+    ```html
+    <p> You have visited this page {{ num_visits }} times.</p>
+    ```
+
+Run the development server using `python manage.py runserver` and navigate to [`http://127.0.0.1:8000/blog/`](http://127.0.0.1:8000/blog/) and you see the following:
+
+![Page Visits counter](example_imgs/page-visits.png)
+
+Refresh the page a few times and you should see the count go up
+
+### Testing
+
+**What does Django provide for testing?**
+
+Testing a website is a complex task, because it is made of several layers of logic – from HTTP-level request handling, to model queries, to form validation and processing, and template rendering.
+
+Django provides a test framework with a small hierarchy of classes that build on the Python standard unittest library. Despite the name, this test framework is suitable for both unit and integration tests. The Django framework adds API methods and tools to help test web and Django-specific behavior. These allow you to simulate requests, insert test data, and inspect your application's output. Django also provides an API (`LiveServerTestCase`) and tools for using different testing frameworks, for example you can integrate with the popular Selenium framework to simulate a user interacting with a live browser.
+
+To write a test you derive from any of the Django (or unittest) test base classes (`SimpleTestCase`, `TransactionTestCase`, `TestCase`, `LiveServerTestCase`) and then write separate methods to check that specific functionality works as expected (tests use "`assert`" methods to test that expressions result in True or False values, or that two values are equal, etc.) When you start a test run, the framework executes the chosen test methods in your derived classes. The test methods are run independently, with common setup and/or tear-down behavior defined in the class, as shown below.
+
+```python
+class YourTestClass(TestCase):
+    def setUp(self):
+        # Setup run before every test method.
+        pass
+
+    def tearDown(self):
+        # Clean up run after every test method.
+        pass
+
+    def test_something_that_will_pass(self):
+        self.assertFalse(False)
+
+    def test_something_that_will_fail(self):
+        self.assertTrue(False)
+```
+
+The best base class for most tests is `django.test.TestCase`. This test class creates a clean database before its tests are run, and runs every test function in its own transaction. The class also owns a test Client that you can use to simulate a user interacting with the code at the view level. In the following sections we're going to concentrate on unit tests, created using this `TestCase` base class.
+
+**What should you test?**
+
+You should test all aspects of your own code, but not any libraries or functionality provided as part of Python or Django.
+
+So for example, consider the `Author` model defined below. You don't need to explicitly test that `first_name` and `last_name` have been stored properly as `CharField` in the database because that is something defined by Django (though of course in practice you will inevitably test this functionality during development). Nor do you need to test that the `date_of_birth` has been validated to be a date field, because that is again something implemented in Django.
+
+However you should check the text used for the labels (First name, Last name, Date of birth, Died), and the size of the field allocated for the text (100 chars), because these are part of your design and something that could be broken/changed in future.
+
+```python
+class Author(models.Model):
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    date_of_birth = models.DateField(null=True, blank=True)
+    date_of_death = models.DateField('Died', null=True, blank=True)
+
+    def get_absolute_url(self):
+        return reverse('author-detail', args=[str(self.id)])
+
+    def __str__(self):
+        return '%s, %s' % (self.last_name, self.first_name)
+```
+
+Similarly, you should check that the custom methods `get_absolute_url()` and `__str__()` behave as required because they are your code/business logic. In the case of get_absolute_url() you can trust that the Django `reverse()` method has been implemented properly, so what you're testing is that the associated view has actually been defined.
+
+> Astute readers may note that we would also want to constrain the date of birth and death to sensible values, and check that death comes after birth. In Django this constraint would be added to your form classes (although you can define validators for model fields and model validators these are only used at the form level if they are called by the model's `clean()` method. This requires a` ModelForm`, or the model's `clean()` method needs to be specifically called.)
+
+**Test structure overview**
+
+Django uses the unittest module's built-in test discovery, which will discover tests under the current working directory in any file named with the pattern `test*.py`. Provided you name the files appropriately, you can use any structure you like. We recommend that you create a module for your test code, and have separate files for models, views, forms, and any other types of code you need to test. For example:
+
+        ├── blog/
+            ├── tests/
+                ├── __init__.py
+                ├── test_forms.py
+                ├── test_models.py
+                └── test_views.py
+
+Create a file structure as shown above in your project. The `__init__.py` should be an empty file (this tells Python that the directory is a package). You can create the three test files by copying and renaming the skeleton test file `/blog/tests.py`.
+
+Open `/blog/tests/test_models.py`. The file should import django.test.TestCase, as shown:
+
+```python
+from django.test import TestCase
+
+# Create your tests here.
+```
+
+Often you will add a test class for each model/view/form you want to test, with individual methods for testing specific functionality. In other cases you may wish to have a separate class for testing a specific use case, with individual test functions that test aspects of that use-case (for example, a class to test that a model field is properly validated, with functions to test each of the possible failure cases). Again, the structure is very much up to you, but it is best if you are consistent.
+
+Add the test class below to the bottom of the file. The class demonstrates how to construct a test case class by deriving from `TestCase`.
+
+```python
+class YourTestClass(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        print("setUpTestData: Run once to set up non-modified data for all class methods.")
+        pass
+
+    def setUp(self):
+        print("setUp: Run once for every test method to setup clean data.")
+        pass
+
+    def test_false_is_false(self):
+        print("Method: test_false_is_false.")
+        self.assertFalse(False)
+
+    def test_false_is_true(self):
+        print("Method: test_false_is_true.")
+        self.assertTrue(False)
+
+    def test_one_plus_one_equals_two(self):
+        print("Method: test_one_plus_one_equals_two.")
+        self.assertEqual(1 + 1, 2)
+```
+
+The new class defines two methods that you can use for pre-test configuration (for example, to create any models or other objects you will need for the test):
+
+* `setUpTestData()` is called once at the beginning of the test run for class-level setup. You'd use this to create objects that aren't going to be modified or changed in any of the test methods.
+* `setUp()` is called before every test function to set up any objects that may be modified by the test (every test function will get a "fresh" version of these objects).
+
+> The test classes also have a `tearDown()` method which we haven't used. This method isn't particularly useful for database tests, since the TestCase base class takes care of database teardown for you.
+
+**How to run the tests**
+
+The easiest way to run all the tests is to use the command:
+
+```shell
+python3 manage.py test
+```
+
+This will discover all files named with the pattern `test*.py` under the current directory and run all tests defined using appropriate base classes. By default the tests will individually report only on test failures, followed by a test summary.
+
+**Running specific tests**
+If you want to run a subset of your tests you can do so by specifying the full dot path to the package(s), module, TestCase subclass or method:
+
+```shell
+# Run the specified module
+python3 manage.py test blog.tests
+
+# Run the specified module
+python3 manage.py test blog.tests.test_models
+
+# Run the specified class
+python3 manage.py test blog.tests.test_models.YourTestClass
+
+# Run the specified method
+python3 manage.py test blog.tests.test_models.YourTestClass.test_one_plus_one_equals_two
+```
+
+**Models**
+As discussed above, we should test anything that is part of our design or that is defined by code that we have written, but not libraries/code that is already tested by Django or the Python development team.
+
+For example, consider the `Post` model below. Here we should test the labels for all the fields, because even though we haven't explicitly specified most of them, we have a design that says what these values should be. If we don't test the values, then we don't know that the field labels have their intended values. Similarly while we trust that Django will create a field of the specified length, it is worthwhile to specify a test for this length to ensure that it was implemented as planned.
+
+```python
+class Post(models.Model):
+    STATUS_CHOICES = (
+        ('draft', 'Draft'),
+        ('published', 'Published'),
+    )
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique_for_date='publish', null=False, verbose_name="Slug")
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blog_posts')
+    body = models.TextField()
+    publish = models.DateTimeField(default=timezone.now)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
+    
+    class Meta:
+        ordering = ('-publish',)
+        
+    def __str__(self):
+        return self.title
+    
+    def get_absolute_url(self):
+        return reverse('blog:post-detail', args=[self.slug])
+```
+
+Open our `/blog/tests/test_models.py`, and replace any existing code with the following test code for the `Post` model.
+
+Here you'll see that we first import `TestCase` and derive our test class (`PostModelTest`) from it, using a descriptive name so we can easily identify any failing tests in the test output. We then call `setUpTestData()` to create an author object that we will use but not modify in any of the tests.
+
+```python
+from django.test import TestCase
+from blog.models import Post
+from django.contrib.auth.models import User
+from django.utils import timezone
+
+class TestPostModel(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # Set up non-modified objects used by all test methods
+        user = User.objects.create(username="test_author", 
+                                     email="testing@blog.com", 
+                                     password="testingpass123")
+        # user = User.objects.create(username="new_user")
+        Post.objects.create(title="Testing Post", slug="testing-post",
+                            author=user, body="This is a testing Post.",
+                            created=timezone.now, updated=timezone.now,
+                            status='published')
+    
+    def test_object_name_is_title(self):
+        post = Post.objects.get(id=1)
+        expected_name = f"{post.title}"
+        # self.assertTrue(isinstance(post, Post))
+        self.assertEqual(str(post), expected_name)
+        
+    def test_get_absolute_url(self):
+        post = Post.objects.get(id=1)
+        self.assertEqual(post.get_absolute_url(), '/blog/post/testing-post/')
+        
+    def test_slug_label(self):
+        post = Post.objects.get(id=1)
+        field_name = post._meta.get_field('slug').verbose_name
+        self.assertEqual(field_name, 'Slug')
+        
+    def test_title_max_length(self):
+        post = Post.objects.get(id=1)
+        field_max_length = post._meta.get_field('title').max_length
+        self.assertEqual(field_max_length, 200)
+```
+
+The interesting things to note are:
+
+* We can't get the `verbose_name` directly using `post.slug.verbose_name`, because `post.slug` is a string (not a handle to the `slug` object that we can use to access its properties). Instead we need to use the author's `_meta` attribute to get an instance of the field and use that to query for the additional information.
+* We chose to use `assertEqual(field_name,'Slug')` rather than `assertTrue(field_name == 'Slug')`. The reason for this is that if the test fails the output for the former tells you what the label actually was, which makes debugging the problem just a little easier.
+* We also need to test our custom methods. These essentially just check that the object name was constructed as we expected using the post title, and that the URL we get for an `Post` item is as we would expect.
+
+**Forms**
+
+The philosophy for testing your forms is the same as for testing your models; you need to test anything that you've coded or your design specifies, but not the behavior of the underlying framework and other third party libraries.
+
+Generally this means that you should test that the forms have the fields that you want, and that these are displayed with appropriate labels and help text. You don't need to verify that Django validates the field type correctly (unless you created your own custom field and validation) — i.e. you don't need to test that an email field only accepts emails. However you would need to test any additional validation that you expect to be performed on the fields and any messages that your code will generate for errors.
+
+Consider our form for adding comments.
+
+```python
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ('name', 'email', 'body')
+```
+
+Open our `/blog/tests/test_forms.py` file and replace any existing code with the following test code for the RenewBookForm form. We start by importing our form and some Python and Django libraries to help test time-related functionality. We then declare our form test class in the same way as we did for models, using a descriptive name for our `TestCase`-derived test class.
+
+```python
+from django.test import TestCase
+from blog.forms import CommentForm
+from django.utils import timezone
+from datetime import datetime
+
+class CommentFormTest(TestCase):
+    
+    # @classmethod
+    # def setUpTestData(cls):
+    
+    def test_form_submission_date(self):
+        form = CommentForm(
+            data={
+                "name": "Commenter",
+                "email": "commenter@blog.com",
+                "body": "Testing comment submission",
+            }
+        )
+        form1 = CommentForm(
+            data={
+                "email": "commenter@blog.com",
+                "body": "Testing comment submission",
+            }
+        )
+        self.assertTrue(form.is_valid())
+        self.assertFalse(form1.is_valid())
+        
+    def test_form_date_timezone(self):
+        form = CommentForm(
+            data={
+                "name": "Commenter",
+                "email": "commenter@blog.com",
+                "body": "Testing comment submission",
+                "created": datetime.now(),
+            }
+        )
+        self.assertTrue(form.is_valid())
+```
+
+**Views**
+
+To validate our view behavior we use the Django test Client. This class acts like a dummy web browser that we can use to simulate `GET` and `POST` requests on a URL and observe the response. We can see almost everything about the response, from low-level HTTP (result headers and status codes) through to the template we're using to render the HTML and the context data we're passing to it. We can also see the chain of redirects (if any) and check the URL and status code at each step. This allows us to verify that each view is doing what is expected.
+
+Consider our simplest view found at `http://127.0.0.1:8000/blog/` :
+
+```python
+def home(request):
+    text = "Welcome to the PythonBugs Blog"
+    posts = Post.objects.all()
+    
+    # Getting session a session value and setting a default if its not present
+    num_visits = request.session.get('num_visits', 0)
+    
+    # Creating a session variable
+    request.session['num_visits'] = num_visits + 1
+    
+    return render(request, 'blog/index.html', {"welcome_text": text,
+                                               "all_posts": posts,
+                                               "num_visits": num_visits})
+```
+
+Open the `/blog/tests/test_views.py` file and replace any existing text with the following test code for `home()`. As before we import our model and some useful classes. In the `setUpTestData()` method we set up a number of Post objects.
+
+```python
+class PostListViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        
+        user = User.objects.create(username="test_author",
+                                   email="testing@blog.com",
+                                   password="testingpass123")
+         
+        num_of_posts = 10
+        
+        for post_num in range(num_of_posts):
+            Post.objects.create(
+                title=f"Testing Post {post_num}", 
+                slug=f"testing-post-{post_num}",
+                author=user,
+                body="This is a testing Post.",
+                created=timezone.now,
+                updated=timezone.now,
+                status='published')
+            
+    def test_view_url(self):
+        response = self.client.get('/blog/')
+        self.assertEqual(response.status_code, 200)
+        
+    def test_view_uses_correct_template(self):
+        response = self.client.get('/blog/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'blog/index.html')
+    
+    def test_list_all_posts(self):
+        response = self.client.get('/blog/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['all_posts']), 10)
+```
+
+All the tests use the client (belonging to our TestCase's derived class) to simulate a GET request and get a response. The first version checks a specific URL (note, just the specific path without the domain).
+
+```python
+response = self.client.get('/blog/')
+```
+
+Once we have the response we query it for its status code, the template used, the number of items returned, and the total number of items.
+The most interesting variable we demonstrate above is `response.context`, which is the context variable passed to the template by the view. This is incredibly useful for testing, because it allows us to confirm that our template is getting all the data it needs. In other words we can check that we're using the intended template and what data the template is getting, which goes a long way to verifying that any rendering issues are solely due to template.
+
+**Views that are restricted to logged in users**
+
+In some cases you'll want to test a view that is restricted to just logged in users. For example our post_detail view is very similar to our previous view but is only available to logged in users, and only displays a specific post.
+
+```python
+@login_required
+def post_detail(request, slug):
+    blog_post = get_object_or_404(Post, slug=slug)
+
+    #  List of active comments
+    comments = blog_post.comments.filter(active=True)
+    
+    new_comment = None
+    
+    if request.method == "POST":
+        # A comment was passed
+        comment_form = CommentForm(data=request.POST)
+        if comment_form.is_valid():
+            # Create the comment but dont save
+            new_comment = comment_form.save(commit=False)
+            # Assign post to the form
+            new_comment.post = blog_post
+            # Save the comment
+            new_comment.save()
+    else:
+        # For GET request.
+        comment_form = CommentForm()
+    
+    return render(request, 'blog/post-detail.html',
+                  {"post": blog_post, "comments": comments,
+                   "new_comment": new_comment, "comment_form": comment_form})
+```
+
+Add the following test code to `/blog/tests/test_views.py`. Here we first use SetUpTestData() to create some user login accounts and post objects (along with their posts) that we'll use later in the tests.
+
+```python
+class PostDetailViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user1 = User.objects.create(username="test_author1",
+                                   email="testing1@blog.com",
+                                   password="testingpass123")
+        
+        user2 = User.objects.create(username="test_author2",
+                                   email="testing2@blog.com",
+                                   password="testingpass123")
+        
+        post = Post.objects.create(
+                title=f"Testing Post", 
+                slug=f"testing-post",
+                author=user1,
+                body="This is a testing Post.",
+                created=timezone.now,
+                updated=timezone.now,
+                status='published')
+        
+        Comment.objects.create(
+            post=post,
+            name="Test Commenter",
+            email="commneter@blog.com",
+            body="Test comment",
+            # created=str(timezone.now),
+            # updated=timezone.now,
+            # active=True,
+        )
+        
+
+    def test_redirect_if_not_authenticated(self):
+        response = self.client.get('/blog/post/testing-post/')
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.startswith('/account/login/'))
+    
+    def test_logged_in_url(self):
+        user = User.objects.get(id=2)
+        logged_in = self.client.force_login(user)
+        response = self.client.get('/blog/post/testing-post/')
+        self.assertEqual(response.status_code, 200)    
+    
+    def test_view_uses_correct_template(self):
+        user = User.objects.get(id=2)
+        logged_in = self.client.force_login(user)
+        response = self.client.get('/blog/post/testing-post/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'blog/post-detail.html')
+         
+    def test_comments_exist(self):
+        user = User.objects.get(id=2)
+        post = Post.objects.get(id=1)
+        logged_in = self.client.force_login(user)
+        response = self.client.get('/blog/post/testing-post/')
+        self.assertEqual(len(response.context['comments']), 1)
+```
+
+**Testing views with forms**
+
+Testing views with forms is a little more complicated than in the cases above, because you need to test more code paths: initial display, display after data validation has failed, and display after validation has succeeded. The good news is that we use the client for testing in almost exactly the same way as we did for display-only views.
+
+we will use the same post detail c=view to test views with forms.
+
+We've already tested that the view is only available to users that are logged in.
+
+Add the test method (shown below) to the bottom of `/blog/tests/test_views.py`. This creates logs a user in and creates a new comment under the post.
+
+```python
+    # ....
+        
+    def test_comment_submission(self):
+        user = User.objects.get(id=2)
+        post = Post.objects.get(id=1)
+        logged_in = self.client.force_login(user)
+        response = self.client.post('/blog/post/testing-post/', kwargs=
+                                    {"post":post,
+                                     "name": "Second Commenter",
+                                     "email":"commenter2@blog.com",
+                                     "body":"2nd Test comment."})
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+```
+
+Writing test code is neither fun nor glamorous, and is consequently often left to last (or not at all) when creating a website. It is however an essential part of making sure that your code is safe to release after making changes, and cost-effective to maintain.
+Most importantly we've provided a brief summary of what you should test, which is often the hardest thing to work out when you're getting started. There is a lot more to know, but even with what you've learned already you should be able to create effective unit tests for your websites.
+
+### Logging
+
+Logging is a technique or medium which can let us track some events as the software executes. It is an important technique for developers. It helps them to track events. Logging is like an extra set of eyes for them. Developers are not only responsible for making software but also for maintaining them.
+
+Logging helps with that part of maintenance immensely.
+
+It tracks every event that occurs at all times. That means instead of the long tracebacks you get much more. This time when an error occurs you can see in which the system was. This method will help you resolve errors quickly. As you will be able to tell where the error occurred.
+
+**How does it work? What’s the idea behind it?**
+
+The logging is handled by a separate program. That logging program is simply a file-writer. The logger is said to record certain events in text format. The recorded information is then saved in files. The files for this are called logs.
+
+The logs are simple files saved with log extension. They contain the logs of events occurred.
+
+Well, this is just one of the most used implementations, as you can see. Since we are just storing the information, you can come up with more ways to deal with it.
+
+Okay, it’s clear to us that logging is important. Is it difficult? No, absolutely not. Logging is not difficult at all. Anyone who knows a little bit about the setup can use this.
+
+Being a Python programmer, you get extra features here too. We got a whole module that lets us accomplish just that. As for other languages, there are many modules, Java has Log4j and JavaScript has its own loglevel.
+
+**Logging Module in Python**
+
+The logging module is a built-in Python module. It comes preinstalled with Python 3. Logging module is used to keep track of the events that occur as the program runs. That can be extended to any number of programs and thus for software, it is easy to set up and use.
+
+**Why use logging module?**
+As a developer, we can ask why use the logging module. All logging does is writing to a file or printing it on the console. All that can be achieved by using print statements. Then what is the need for a logging module?. That’s a valid question. The answer to that is logging is a module that gives what print cannot.
+
+We use print function to output something on console. So, when a function occurs, we can get a print statement that the function executed. While that approach works with smaller applications, it is inefficient.
+
+Print function becomes part of your program and if the software stops working, you won’t get the result. Also, if anything occurs and system restarts, the console is also clear. So, what will you do then? The answer to that is logging module.
+
+**The logging module is capable of:**
+
+* Multithreading execution
+* Categorizing Messages via different log levels
+* It’s much more flexible and configurable
+* Gives a more structured information
+
+There are 4 main parts of logging module. We will look at them one by one.
+
+1. **Loggers**
+
+    The loggers are the objects that developers deal with. They can be understood as a function which will be invoked when they are called. We use loggers in our project files. Thus, when the function is invoked, we get a detailed report. The logger can generate multiple levels of responses.
+
+    We can customize it to full extent.
+
+2. **Handlers**
+
+    Handlers are the objects which emit the information. Think of them as newspaper handlers. Their main task is to transmit the information. That can be achieved by writing the info in a log file (The default behaviour). There are various handlers provided by logging module.
+
+    We can easily set-up multiple handlers for the same logger. There are SMTP Handlers too which will mail the log records to you. The handlers usually contain business logic for logging information.
+
+3. **Formatters**
+
+    The formatters are the ones which format the data. You see handlers cannot send the information as it’s a Python data type. Before it can be sent to anyone, it needs to be converted.
+
+    The logs are by-default in Log Records format. That is the class pre-defined by logging framework. It gives various methods to developers to use. That format can not be directly sent over a network or written in a text file. To convert that or format that, we need formatters.
+
+    There are different formatters for different handlers.
+
+    By default, the formatters will convert the Log Record into String. This behaviour can be easily changed and you can customize this as you want. This format can be based on the business logic that we write in Handlers.
+
+4. **Filters**
+
+    The last piece of the logging module is filters. The filters, as the name suggests, filter the messages. Not every message we pass needs to be stored or transported. Or there can be different handlers for different messages. All that is achievable with the help of filters.
+
+    We can use filters with both loggers and handlers.
+
+It also provides us with message levels. The message levels are defined as:
+
+**DEBUG:** It is verbose system information when everything is running fine. It will tell you more precise details about the state of the system. Its severity point is 10.
+
+**INFO:** The info will produce less verbose system information but is similar to debug. It generally tells an overview of what the system is executing. Its severity point is 20.
+
+**WARNING:** This contains information regarding low-level problems. The problems may be ignored as they don’t cause the system to halt. Although, it is recommended that these problems shall be resolved.
+
+Its severity point is 30.
+
+**ERROR:** This message is serious. The error will contain information about the major problem that has occurred. The problem may have stopped the operation of program and needs immediate attention.
+
+Its severity point is 40.
+
+**CRITICAL:** The most critical message. This message is emitted when the problem has caused the system to stop. That means the whole application has halted due to this problem.
+
+Its severity point is 50.
+
+The severity point determines what priority shall be given. Suppose, we set the log level to be 30. Then the logger will log or store the information when the level is greater than or equal to 30. So, you just need to confirm what level of logging you want.
+
+![Logging Message Levels](example_imgs/logging.png)
+
+**Logging in Django**
+
+Django provides logging by using the logging module of Python. The logging module can be easily configured.
+
+**Configuring Settings**
+
+For including logging in Django, we need to configure its settings. Doing that is pretty easy. By configuring logging settings, we mean to define:
+
+* Loggers
+* Handlers
+* Filters
+* Formatters
+
+Just copy this code in your `settings.py`:
+
+```python
+# Authentication settings
+LOGIN_REDIRECT_URL = 'blog:home'
+LOGIN_URL = 'account:login'
+LOGOUT_URL = 'account:logout'
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    
+    ##Handlers
+    "handlers": {
+        "file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            # Filename where logs will be kept
+            "filename": "pythonbugs-debug.log",
+        },
+        "console": {
+            "class": "logging.StreamHandler",         
+        }, 
+    },
+    
+    ## Loggers
+    "loggers": {
+        "django": {
+            # specifying predefined handlers to use when writing logs
+            "handlers": ['file', 'console'],
+            # Filtering the level of messages to be written to logs
+            "level": "DEBUG",
+            # Specify whether to write across all logs or not
+            "propagate": True,
+            # Logging level for Djangos built-in/default loggers
+            "level": os.getenv('DJANGO_LOG_LEVEL', 'DEBUG')  
+        },
+    },        
+}
+```
 

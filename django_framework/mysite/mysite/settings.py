@@ -131,3 +131,35 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_REDIRECT_URL = 'blog:home'
 LOGIN_URL = 'account:login'
 LOGOUT_URL = 'account:logout'
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    
+    ##Handlers
+    "handlers": {
+        "file": {
+            "level": "WARNING",
+            "class": "logging.FileHandler",
+            # Filename where logs will be kept
+            "filename": "pythonbugs-info.log",
+        },
+        "console": {
+            "class": "logging.StreamHandler",         
+        }, 
+    },
+    
+    ## Loggers
+    "loggers": {
+        "django": {
+            # specifying handlers to use when writing logs
+            "handlers": ['file', 'console'],
+            # Filtering the level of message sto be written to logs
+            "level": "WARNING",
+            # Specify whether to write across all logs or not
+            "propagate": True,
+            # Logging level for Djangos built-in/default loggers
+            "level": os.getenv('DJANGO_LOG_LEVEL', 'DEBUG')  
+        },
+    },        
+}

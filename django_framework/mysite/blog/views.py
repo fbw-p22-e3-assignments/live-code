@@ -8,21 +8,19 @@ from .forms import CommentForm, ContactForm
 from django.contrib.auth.decorators import login_required
 
 
-
 def home(request):
     text = "Welcome to the PythonBugs Blog"
     posts = Post.objects.all()
     
     # Getting session a session value and setting a default if its not present
-    # num_visits = request.session.get('num_visits', 0)
+    num_visits = request.session.get('num_visits', 0)
     
     # Creating a session variable
-    # request.session['num_visits'] = num_visits + 1
-    
-    # request.session.set_expiry(10)
+    request.session['num_visits'] = num_visits + 1
     
     return render(request, 'blog/index.html', {"welcome_text": text,
-                                               "all_posts": posts})
+                                               "all_posts": posts,
+                                               "num_visits": num_visits})
 
 
 # class PostDetail(View):
