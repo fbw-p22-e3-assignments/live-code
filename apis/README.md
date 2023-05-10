@@ -97,4 +97,212 @@ There are three kinds of workspaces in Postman:
 Postman’s API testing features are available for Personal, Private, and Public workspaces.
 
 **Creating a new workspace**
+
 To create a new workspace, select Workspaces in the header, then select Create Workspace.
+
+![Create Workspace](example_imgs/create-workspace.png)
+
+**Creating Requests**
+
+
+
+## Testing APIs with *curl*
+
+**What is cURL?**
+
+cURL stands for “Client URL” and is a data transfer application. It consists of two components, the libcurl client-side library and the curl command-line tool. cURL was originally designed to allow Linux IRC users to automate common tasks. However, it is now available for most operating systems and behaves similarly across platforms.
+
+`curl` uses the `libcurl` library and a simple URL-based syntax to transmit and receive data. It can be used as a stand-alone command line application, or inside scripts or web applications. The `curl` utility is common in embedded applications for vehicles, routers, printers, and audio-visual equipment. It is also used to access REST APIs and to test new APIs.
+
+The cURL application is:
+
+free and open source.
+portable across operating systems.
+contains APIs or bindings for over 50 programming languages, including C/C++, Java, and Python.
+thread safe.
+It also supports:
+
+most transfer protocols and web technologies, including HTTP, FTP, SFTP, and SCP.
+Ipv6 and dual-stack requests.
+APIs or bindings for over 50 programming languages, including C/C++, Java, and Python.
+
+**Installing curl**
+
+As of 2022, the most recent release of curl is version 7.83.0. curl usually comes pre-installed on Ubuntu and other Linux distributions. To see if curl is already installed, run the curl command with the -V flag for “version”. The local installation might not match the latest edition, but any recent release should be adequate.
+
+```shell
+curl -V
+```
+
+If necessary, `curl` can be installed using `apt-get install`. Ensure the system is updated first.
+
+```shell
+sudo apt-get install curl
+```
+
+**Command Line Options for curl**
+
+To use curl from the command line, type curl and the URL to access.
+
+```shell
+curl example.com
+```
+
+By default, curl displays its output in the terminal window. However, the -o option redirects the output to a file.
+
+```shell
+curl -o source.html example.com
+```
+
+curl includes a wide range of options. To see a list of all options, use the --help option.
+
+```shell
+curl --help
+```
+
+Some of the most important options/flags are as follows:
+
+* `B`: Use ASCII for text and transfer.
+* `C`: Resume an interrupted transfer.
+* `d`: Data for the HTTP POST or PUT commands.
+* `E`: Use a client certificate file and optional password.
+* `F`: Update a HTTP form request from a file.
+* `H`: Pass a custom header to the server.
+* `K`: Use a file for the configuration.
+* `m`: Set a maximum time for the transfer.
+* `N`: Disable buffering.
+* `o`: Write the output to a file.
+* `s`: Run in silent mode.
+* `u`: Add a user name and password for the server.
+* `v`: Verbose mode, for more details.
+* `X`: Specifies the HTTP command to use.
+* `4`: Use Ipv4 addresses.
+* `6`: Use Ipv6 addresses.
+* `#`: Display a progress bar. This is useful for large transfers.
+
+**cURL Methods**
+
+`curl` uses several HTTP commands to connect to remote REST APIs. These actions correspond to the different REST verbs. The syntax for RESTful requests is simple and straightforward and is similar to other curl requests. For thorough documentation on how to use `curl`, see the official [`curl` documentation](https://curl.se/docs/).
+
+***GET***
+
+The `GET` operation allows `curl` to receive information from a REST API. To use the `GET` RESTful verb, use the `curl` command followed by the name of the resource to access. The `-X` attribute and the name of the operation are not required because `GET` is the default HTTP operation.
+
+The output varies based on the server. It includes a `status`, which is set to `success` if the request is valid, the `data`, and an optional `message`. In this case, the client does not specify a format for the data, so the server responds using JSON. To see more information about the transfer, including the server options, append the `-v` (verbose) option to the command.
+
+```shell
+curl https://example.com/api/2/employees
+```
+
+```json
+{"status":"success","data":[{"id":1,"name":"Tom","age":60,"image":""},
+...
+{"id":40,"name":"Linda","age":50,"image":""}],"message":"All records retrieved."}
+```
+
+To see one particular entry, append the id of the entry to retrieve. In this example, only the information for employee 10 is returned from the server. The output is again in JSON format.
+
+```shell
+curl https://example.com/api/2/employees/10
+```
+
+```json
+{"status":"success","data":{"id":10,"name":"Julia","age":33,"image":""},"message":"Record retrieved."}
+```
+
+***POST***
+
+The `POST` verb allows users to push data to a REST API and add new entries to the remote database. The data is specified as an argument for the `-d` option. The data should be in a format matching the request. In this case, the `-H` option informs the server the data is in `application/json` format. If a format is not specified, `curl` adds `Content-Type: application/x-www-form-urlencoded` to the HTTP header. This might cause problems on some servers.
+
+The server returns the new record, including the id of the new entry. The following command adds a new record to the application server.
+
+```shell
+curl -d '{"name":"Jamie","age":"23","image":""}' -H 'Content-Type: application/json' -X POST https://example.com/api/2/create
+```
+
+```json
+{"status":"success","data":{"name":"Jamie","age":"23","image":null,"id":5126},"message":"Record added."}
+```
+
+This approach is fine for small amounts of data. To add multiple records, pass a file containing the information to the server. The filename can be indicated with a `@` symbol followed by the file name, as follows:
+
+```shell
+curl -d @data.json -H 'Content-Type: application/json' -X POST https://example.com/api/2/create
+```
+
+***PUT***
+
+The RESTful verb `PUT` modifies an existing entry. This option works similarly to the `POST` option. The `-d` flag specifies the updated information for the record, and `-H` indicates the data format. However, the `id` of the record to update must be included as part of the URI. For a `PUT` command, the `-X` option must include the keyword.
+
+```shell
+curl -d '{"name":"Jamie","age":"23","image":""}' -H 'Content-Type: application/json' -X PUT  https://example.com/api/2/update/31
+```
+
+```json
+{"status":"success","data":{"name":"Jamie","age":"23","image":null},"message":"Record updated."}
+```
+
+***DELETE***
+
+The `DELETE` operation removes a record from the database. It is one of the simpler REST verbs to use. As part of the `-X` option, include the `DELETE` verb and append the `id` of the record to delete to the URI. The data and header flags are not required for this operation.
+
+```shell
+curl -X DELETE https://example.com/api/2/delete/31
+```
+
+```json
+{"status":"success","data":"31","message":"Record deleted"}
+```
+
+**Viewing and Changing Headers with cURL**
+
+In normal usage, `curl` only displays the most relevant information, not the entire HTTP request and response. To view all information, including the HTTP headers, add the `-v` option to any `curl` command to activate verbose mode.
+
+```shell
+curl -v example.com
+```
+
+```shell
+* TCP_NODELAY set
+* Connected to example.com (2606:2800:220:1:248:1893:25c8:1946) port 80 (#0)
+> GET / HTTP/1.1
+> Host: example.com
+> User-Agent: curl/7.68.0
+> Accept: */*
+>
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 200 OK
+< Age: 409433
+< Cache-Control: max-age=604800
+< Content-Type: text/html; charset=UTF-8
+< Date: Tue, 03 May 2022 16:40:30 GMT
+< Etag: "3147526947+ident"
+< Expires: Tue, 10 May 2022 16:40:30 GMT
+< Last-Modified: Thu, 17 Oct 2019 07:18:26 GMT
+< Server: ECS (bsa/EB20)
+< Vary: Accept-Encoding
+< X-Cache: HIT
+```
+
+Any outgoing HTTP header in `curl` can be modified using the `-H` option. Some of the previous examples already demonstrated how to use this flag when setting the `content-type`. However, `-H` also allows users to modify any field in the header. The following example demonstrates how to turn off the `user-agent` field in the header. When the header is reviewed in verbose mode, the field is no longer present.
+
+```shell
+curl -H "User-Agent:" http://example.com -v
+```
+
+```shell
+*   Trying 2606:2800:220:1:248:1893:25c8:1946:80...
+* TCP_NODELAY set
+* Connected to example.com (2606:2800:220:1:248:1893:25c8:1946) port 80 (#0)
+> GET / HTTP/1.1
+> Host: example.com
+> Accept: */*
+```
+
+**Authorization and Passwords with cURL**
+Many REST APIs require the user to authenticate using a valid user name and password. The easiest way to provide this information is through the `-u` option of the `curl` command. Include the account name and password, separated by a `:`. The following example executes the `GET` RESTful verb using authentication.
+
+```shell
+curl -u user:password https://example.com/api/2/employee/10
+```
+
