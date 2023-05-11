@@ -227,5 +227,3 @@ Create an endpoint for the class-based view above:
         path('todo/', include('todo.urls', namespace='todo')),
     ]
     ```
-
-    
