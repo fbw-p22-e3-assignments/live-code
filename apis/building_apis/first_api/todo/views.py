@@ -20,6 +20,7 @@ class TodoListApiView(APIView):
         
         # Validate the data using the serializer
         serializer = TodoSerializer(todos, many=True)
+        print(serializer.data)
         
         # Return data and status code
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -49,7 +50,63 @@ class TodoListApiView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
         # if data is not valid return errors and error code
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
+        
+        
+class TodoDetailApiView(APIView):
+    """Lists the details for a specific todo(object)"""
+    
+    def get_object(self, todo_id):
+        """
+        Helper method to get a specific according to the passed todo_id.
+        """
+        try:
+            # Return object specified by todo_id
+            return Todo.objects.get(id=todo_id)
+        except Todo.DoesNotExist:
+            return None
+        
+    def get(self, request, todo_id, *args, **kwargs):
+        """Retrieves the todo with given ID."""
+        # Retrieve object
+        todo_item = self.get_object(todo_id)
+        if not todo_item:
+            return Response({"response": f"Object with ID #{todo_id} does not exist."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        serializer = TodoSerializer(todo_item)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def put(self, request, todo_id):
+        """Updates the todo item with given ID."""
+        # Retrieve object
+        todo_item = self.get_object(todo_id)
+        if not todo_item:
+            return Response({"response": f"Object with ID #{todo_id} does not exist."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+        # Create a dictionary with data passed to the API
+        data = {
+            'task': request.data.get('task'),
+            'details': request.data.get('details'), 
+            'completed': request.data.get('completed')
+        }
+        # Create serializer instance using the TodoSerializer
+        # Pass the todo_item as instance to the serializer
+        # Pass the data dictionary with data to  be updated for the instance
+        # Specify partial update of the fields
+        serializer = TodoSerializer(instance=todo_item, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-        
-        
+    def delete(self, request, todo_id):
+        """Deletes an object given the todo_id"""
+        # Retrieve object
+        todo_item = self.get_object(todo_id)
+        if not todo_item:
+            return Response({"response": f"Object with ID #{todo_id} does not exist."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        todo_item.delete()
+        return Response({"message": "Object successfully deleted!"}, status=status.HTTP_200_OK)
+            

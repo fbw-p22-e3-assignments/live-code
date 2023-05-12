@@ -227,3 +227,117 @@ Create an endpoint for the class-based view above:
         path('todo/', include('todo.urls', namespace='todo')),
     ]
     ```
+
+Test out the the API by running the development server:
+
+```shell
+python manage.py runserver
+```
+
+In your browser navigate to [`http://127.0.0.1:8000/todo/`](http://127.0.0.1:8000/todo/)
+
+You should see something similar to this:
+
+![Browsable API](example_imgs/Browsable.png)
+
+Enter a few items in the `content` input box using `JSON` format and they should appear on the list above.
+
+This page is called the browsable API. API may stand for Application Programming Interface, but humans have to be able to read the APIs, too; someone has to do the programming. Django REST Framework supports generating human-friendly HTML output for each resource when the `HTML` format is requested. These pages allow for easy browsing of resources, as well as forms for submitting data to the resources using `POST`, `PUT`, and `DELETE`.
+
+**Detail view**
+
+Now that we’ve successfully created our first endpoint view, let’s create the second endpoint `todos/<int:todo_id>/` API view.
+
+In this API view class, we need to create three methods for handling the corresponding HTTP methods, `GET`, `PUT`, and `DELETE`, as discussed above. Add the following code to the `todo/views.py` file:
+
+```python
+class TodoDetailApiView(APIView):
+
+    def get_object(self, todo_id):
+        '''
+        Helper method to get the object with given todo_id
+        '''
+        try:
+            return Todo.objects.get(id=todo_id)
+        except Todo.DoesNotExist:
+            return None
+
+    # 3. Retrieve
+    def get(self, request, todo_id, *args, **kwargs):
+        '''
+        Retrieves the Todo with given todo_id
+        '''
+        todo_instance = self.get_object(todo_id)
+        if not todo_instance:
+            return Response(
+                {"res": "Object with todo id does not exists"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = TodoSerializer(todo_instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # 4. Update
+    def put(self, request, todo_id, *args, **kwargs):
+        '''
+        Updates the todo item with given todo_id if exists
+        '''
+        todo_instance = self.get_object(todo_id)
+        if not todo_instance:
+            return Response(
+                {"res": "Object with todo id does not exists"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        data = {
+            'task': request.data.get('task'), 
+            'completed': request.data.get('completed'), 
+            'user': request.user.id
+        }
+        serializer = TodoSerializer(instance = todo_instance, data=data, partial = True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # 5. Delete
+    def delete(self, request, todo_id, *args, **kwargs):
+        '''
+        Deletes the todo item with given todo_id if exists
+        '''
+        todo_instance = self.get_object(todo_id)
+        if not todo_instance:
+            return Response(
+                {"res": "Object with todo id does not exists"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        todo_instance.delete()
+        return Response(
+            {"res": "Object deleted!"},
+            status=status.HTTP_200_OK
+        )
+```
+
+The `GET()` method first fetches the object with the ID `todo_id`. If the requested object is not available, it returns the response with the status as `400_BAD_REQUEST`. Otherwise, it serializes the model object to a `JSON` serialized object and returns the response with serializer.data and status as `200_OK`.
+
+The `PUT()` method fetches the to-do object if it is available in the database, updates its data with requested data, and saves the updated data in the database.
+
+The `DELETE()` method fetches the to-do object if is available in the database, deletes it, and responds with a response.
+
+Update the file `todo/urls.py` as demonstrated below:
+
+```python
+from .views import TodoListApiView, TodoDetailApiView
+
+urlpatterns = [
+    # ...
+    path('<int:todo_id>/', TodoDetailApiView.as_view(), name='todo-detail'),
+]
+```
+
+Now, if you navigate to `http://127.0.0.1:8000/todo/<id>/`, it will show the detail API view page. Notice that you correctly navigate to a valid ID. In the screenshot below, I used 2 as the ID:
+
+![Browsable Detail Page](example_imgs/detail-page.png)
+
+If you navigate using an invalid ID:
+
+![Invalid ID](example_imgs/invalid-id.png)
