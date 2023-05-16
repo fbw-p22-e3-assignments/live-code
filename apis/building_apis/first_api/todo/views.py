@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Todo
 from .serializers import TodoSerializer
+# Permissions classes from rest_framework
+from rest_framework.permissions import IsAuthenticated
 
 
 class TodoListApiView(APIView):
@@ -10,6 +12,8 @@ class TodoListApiView(APIView):
     List all todo items using the get method.
     Create a new todo using the post method.
     """
+    
+    permission_classes = [IsAuthenticated]
     
     def get(self, request, *args, **kwargs):
         """
@@ -31,14 +35,14 @@ class TodoListApiView(APIView):
         """
         
         # Create a dictionary with data passed from the request object.
-        data = {
-            'task': request.data.get('task'),
-            'details': request.data.get('details'), 
-            'completed': request.data.get('completed')
-        }
+        # data = {
+        #     'task': request.data.get('task'),
+        #     'details': request.data.get('details'), 
+        #     'completed': request.data.get('completed')
+        # }
         
         # Pass the data dictionary to the serializer
-        serializer = TodoSerializer(data=data)
+        serializer = TodoSerializer(data=request.data)
         
         # Check if data passed through serializer is valid
         if serializer.is_valid():
@@ -73,6 +77,8 @@ class TodoDetailApiView(APIView):
         if not todo_item:
             return Response({"response": f"Object with ID #{todo_id} does not exist."},
                             status=status.HTTP_400_BAD_REQUEST)
+            
+        # To_do item exists
         serializer = TodoSerializer(todo_item)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -85,19 +91,29 @@ class TodoDetailApiView(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
         
         # Create a dictionary with data passed to the API
-        data = {
-            'task': request.data.get('task'),
-            'details': request.data.get('details'), 
-            'completed': request.data.get('completed')
-        }
+        # data = {
+        #     'task': request.data.get('task'),
+        #     'details': request.data.get('details'), 
+        #     'completed': request.data.get('completed')
+        # }
+        
         # Create serializer instance using the TodoSerializer
         # Pass the todo_item as instance to the serializer
         # Pass the data dictionary with data to  be updated for the instance
         # Specify partial update of the fields
-        serializer = TodoSerializer(instance=todo_item, data=data, partial=True)
+        serializer = TodoSerializer(instance=todo_item, data=request.data, partial=True)
+        print(request.data)
+        
+        # Check if data is valid
         if serializer.is_valid():
+            
+            # Save validated data
             serializer.save()
+            
+            # Return appropriate response
             return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        # Return errors from the serializer and appropriate status code
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request, todo_id):
@@ -107,6 +123,10 @@ class TodoDetailApiView(APIView):
         if not todo_item:
             return Response({"response": f"Object with ID #{todo_id} does not exist."},
                             status=status.HTTP_400_BAD_REQUEST)
+            
+        # Delete object if it it exists
         todo_item.delete()
         return Response({"message": "Object successfully deleted!"}, status=status.HTTP_200_OK)
+    
+# TODO: Build a view for contacts
             
