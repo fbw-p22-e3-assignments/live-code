@@ -7,6 +7,6 @@ app_name = 'todo'
 
 urlpatterns = [
     path('', TodoListApiView.as_view(), name='todo-list'),
-    path('<int:todo_id>/', TodoDetailApiView.as_view(), name='todo-detail'),
+    path('<int:pk>/', TodoDetailApiView.as_view(), name='todo-detail'),
     path('api-auth-token/', obtain_auth_token, name='api-auth-token'),
 ]
