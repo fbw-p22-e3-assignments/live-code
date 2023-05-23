@@ -1,8 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Todo
-from .serializers import TodoSerializer
+from .models import Todo, Contact
+from .serializers import TodoSerializer, ContactSerializer
 # Permissions classes from rest_framework
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 # Import Concrete Generic Views
@@ -62,7 +62,7 @@ from rest_framework import generics
 class TodoListApiView(generics.ListCreateAPIView):
     queryset = Todo.objects.all()
     serializer_class = TodoSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    # permission_classes = [IsAuthenticatedOrReadOnly]
     allowed_methods = ['GET', 'POST']
      
         
@@ -143,4 +143,10 @@ class TodoDetailApiView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Todo.objects.all()
     serializer_class = TodoSerializer
     allowed_methods = ['GET', 'PUT', 'DELETE'] 
+    
+    
+class ContactApiView(generics.ListCreateAPIView):
+    queryset = Contact.objects.all()
+    serializer_class = ContactSerializer
+        
       
