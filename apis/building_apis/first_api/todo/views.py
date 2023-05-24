@@ -7,63 +7,70 @@ from .serializers import TodoSerializer, ContactSerializer
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 # Import Concrete Generic Views
 from rest_framework import generics
+# Import custom exceptions
+from .exceptions import CustomException, NotAcceptable
 
 
-# class TodoListApiView(APIView):
-#     """
-#     List all todo items using the get method.
-#     Create a new todo using the post method.
-#     """
+class TodoListApiView(APIView):
+    """
+    List all todo items using the get method.
+    Create a new todo using the post method.
+    """
     
-#     permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticatedOrReadOnly]
     
-#     def get(self, request, *args, **kwargs):
-#         """
-#         List all the todo items
-#         """
-#         # Get all todos
-#         _todos = Todo.objects.all()
+    def get(self, request, *args, **kwargs):
+        """
+        List all the todo items
+        """
+        # Get all todos
+        todos = Todo.objects.all()
         
-#         # Validate the data using the serializer
-#         serializer = TodoSerializer(todos, many=True)
-#         print(serializer.data)
+        # Validate the data using the serializer
+        serializer = TodoSerializer(todos, many=True)
+        print(serializer.data)
         
-#         # Return data and status code
-#         return Response(serializer.data, status=status.HTTP_200_OK)
+        # Return data and status code
+        # raise CustomException
+        return Response(serializer.data, status=status.HTTP_200_OK)
         
-#     def post(self, request, *args, **kwargs):
-#         """
-#         Create a todo with given data from the request object.
-#         """
+    def post(self, request, *args, **kwargs):
+        """
+        Create a todo with given data from the request object.
+        """
         
-#         # Create a dictionary with data passed from the request object.
-#         # data = {
-#         #     'task': request.data.get('task'),
-#         #     'details': request.data.get('details'), 
-#         #     'completed': request.data.get('completed')
-#         # }
+        # Create a dictionary with data passed from the request object.
+        # data = {
+        #     'task': request.data.get('task'),
+        #     'details': request.data.get('details'), 
+        #     'completed': request.data.get('completed')
+        # }
         
-#         # Pass the data dictionary to the serializer
-#         serializer = TodoSerializer(data=request.data)
+        # Pass the data dictionary to the serializer
+        serializer = TodoSerializer(data=request.data)
         
-#         # Check if data passed through serializer is valid
-#         if serializer.is_valid():
+        # Check if data passed through serializer is valid
+        if serializer.is_valid():
             
-#             # if data is valid save it/create new object
-#             serializer.save()
+            # if data is valid save it/create new object
+            serializer.save()
             
-#             # Return the serialized and status code
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+            # Return the serialized and status code
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         
-#         # if data is not valid return errors and error code
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
+        errors = serializer.errors['details'][0]
+        errors = "details field is required"
+        raise NotAcceptable(detail=f"we cannot accept this because {errors}")
+            
+        # if data is not valid return errors and error code
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
 
 ### Listing view using Generic Views
-class TodoListApiView(generics.ListCreateAPIView):
-    queryset = Todo.objects.all()
-    serializer_class = TodoSerializer
-    # permission_classes = [IsAuthenticatedOrReadOnly]
-    allowed_methods = ['GET', 'POST']
+# class TodoListApiView(generics.ListCreateAPIView):
+#     queryset = Todo.objects.all()
+#     serializer_class = TodoSerializer
+#     # permission_classes = [IsAuthenticatedOrReadOnly]
+#     allowed_methods = ['GET', 'POST']
      
         
 # class TodoDetailApiView(APIView):
