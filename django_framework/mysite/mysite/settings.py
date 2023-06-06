@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
 from pathlib import Path
+import environ
+from google.cloud import secretmanager
+import io
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,11 +24,34 @@ TEMPLATES_DIRS = os.path.join(BASE_DIR, 'templates')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
+# Configure the .env file and secret manager
+env = environ.Env(DEBUG=(bool, False))
+env_file = os.path.join(BASE_DIR, '.env')
+
+if os.path.isfile(env_file):
+    # Use the local secret file, if it exists
+    env.read_env(env_file)
+
+elif os.environ.get('GOOGLE_CLOUD_PROJECT', None):
+    # Pull secrets from Secret Manager
+    project_id = os.environ.get('GOOGLE_CLOUD_PROJECT')
+    
+    client = secretmanager.SecretManagerServiceClient()
+    settings_name = os.environ.get('SETTINGS_NAME', 'django_settings')
+    name = f"projects/{project_id}/{settings_name}/versions/latest"
+    payload = client.access_secret_version(name=name).payload.data.decode("UTF-8")
+    
+    env.read_env(io.StringIO(payload))
+    
+else: 
+    raise Exception("No local .env or GOOGLE_CLOUD_PROJECT detected. No secrets found!")
+    
+    
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-0(^zl_zw2#b@r!r^bocd3$x@#7vk%_k5pgg(h9^vfi*$s96&e9"
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env("DEBUG")    
 
 ALLOWED_HOSTS = []
 
@@ -76,13 +103,12 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+# Use environ to parse over the connection string
+DATABASES = {"default": env.db()}
 
+if os.getenv("USE_CLOUD_SQL_AUTH_PROXY", None):
+    DATABASES["default"]["HOST"] = "127.0.0.1"
+    DATABASES["default"]["PORT"] = 5432
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -118,9 +144,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
+GS_BUCKET_NAME = env("GS_BUCKET_NAME")
 STATIC_URL = "static/"
-
-STATICFILES_DIRS = [ BASE_DIR / 'static/' ]
+DEFAULT_FILE_STORAGE = "storages.backends.GoogleCloudStorage"
+STATICFILES_STORAGE = "storages.backends.GoogleCloudStorage"
+GS_DEFAULT_ACL = "publicRead"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -132,34 +160,34 @@ LOGIN_REDIRECT_URL = 'blog:home'
 LOGIN_URL = 'account:login'
 LOGOUT_URL = 'account:logout'
 
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
     
-    ##Handlers
-    "handlers": {
-        "file": {
-            "level": "WARNING",
-            "class": "logging.FileHandler",
-            # Filename where logs will be kept
-            "filename": "pythonbugs-info.log",
-        },
-        "console": {
-            "class": "logging.StreamHandler",         
-        }, 
-    },
+#     ##Handlers
+#     "handlers": {
+#         "file": {
+#             "level": "WARNING",
+#             "class": "logging.FileHandler",
+#             # Filename where logs will be kept
+#             "filename": "pythonbugs-info.log",
+#         },
+#         "console": {
+#             "class": "logging.StreamHandler",         
+#         }, 
+#     },
     
-    ## Loggers
-    "loggers": {
-        "django": {
-            # specifying handlers to use when writing logs
-            "handlers": ['file', 'console'],
-            # Filtering the level of message sto be written to logs
-            "level": "WARNING",
-            # Specify whether to write across all logs or not
-            "propagate": True,
-            # Logging level for Djangos built-in/default loggers
-            "level": os.getenv('DJANGO_LOG_LEVEL', 'DEBUG')  
-        },
-    },        
-}
+#     ## Loggers
+#     "loggers": {
+#         "django": {
+#             # specifying handlers to use when writing logs
+#             "handlers": ['file', 'console'],
+#             # Filtering the level of message sto be written to logs
+#             "level": "WARNING",
+#             # Specify whether to write across all logs or not
+#             "propagate": True,
+#             # Logging level for Djangos built-in/default loggers
+#             "level": os.getenv('DJANGO_LOG_LEVEL', 'DEBUG')  
+#         },
+#     },        
+# }
