@@ -38,7 +38,7 @@ elif os.environ.get('GOOGLE_CLOUD_PROJECT', None):
     
     client = secretmanager.SecretManagerServiceClient()
     settings_name = os.environ.get('SETTINGS_NAME', 'django_settings')
-    name = f"projects/{project_id}/{settings_name}/versions/latest"
+    name = f"projects/{project_id}/secrets/{settings_name}/versions/latest"
     payload = client.access_secret_version(name=name).payload.data.decode("UTF-8")
     
     env.read_env(io.StringIO(payload))
@@ -53,7 +53,7 @@ SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG")    
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -146,9 +146,11 @@ USE_TZ = True
 
 GS_BUCKET_NAME = env("GS_BUCKET_NAME")
 STATIC_URL = "static/"
-DEFAULT_FILE_STORAGE = "storages.backends.GoogleCloudStorage"
-STATICFILES_STORAGE = "storages.backends.GoogleCloudStorage"
+DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+STATICFILES_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
 GS_DEFAULT_ACL = "publicRead"
+STATICFILES_DIRS = [BASE_DIR/'static/']
+STATIC_ROOT = BASE_DIR/'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

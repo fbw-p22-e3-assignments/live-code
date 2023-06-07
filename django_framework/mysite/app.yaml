@@ -6,4 +6,4 @@ beta_settings:
   cloud_sql_instances: python-bugs-1:europe-west1:pb-blog-db-1
 
 runtime_config:
-  python_version: 3.10
+  python_version: 3.7

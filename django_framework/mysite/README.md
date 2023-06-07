@@ -104,8 +104,14 @@ runtime_config:
 1. Create a new secret `django_settings`, with the values of the .env file:
 
     ```
+    # Create a new secret
     gcloud secrets create django_settings --data-file .env
+
+    # Update secret
+    gcloud secrets versions add django_settings --data-file=.env --project=python-bugs-1
     ```
+
+    
 
 2. Confirm the craetion of the secret:
 
@@ -159,4 +165,18 @@ gcloud secrets add-iam-policy-binding django_settings --member serviceAccount:py
     python manage.py makemigrations
     python manage.py migrate
     python manage.py collectstatic
+    ```
+
+5. Run server locally:
+
+    ```
+    python manage.py runserver
+    ```
+
+## Deploy to App Engine flexible environment
+
+1. Upload to app engine:
+
+    ```
+    gcloud app deploy
     ```
