@@ -12,20 +12,53 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 
+#import django environ
+import environ 
+
+# import cloud secret manager
+import io
+from google.cloud import secretmanager
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATES_DIRS = os.path.join(BASE_DIR, 'templates')
+
+# Configurations for .env file
+env = environ.Env(DEBUG=(bool, False))
+env_file = os.path.join(BASE_DIR, '.env')
+# env.read_env(env_file)
+
+if os.path.isfile(env_file):
+    # read the local .env file
+    env.read_env(env_file)
+
+elif os.environ.get('GOOGLE_CLOUD_PROJECT', None):
+    # pull the .env from secret manager
+    project_id = os.environ.get('GOOGLE_CLOUD_PROJECT')
+    
+    client = secretmanager.SecretManagerServiceClient()
+    settings_name = os.environ.get('SETTINGS_NAME', 'todo_settings')
+    name = f'projects/{project_id}/secrets/{settings_name}/versions/latest'
+    payload = client.access_secret_version(name=name).payload.data.decode('UTF-8')
+    
+    env.read_env(io.StringIO(payload))
+
+else:
+    raise Exception('No local .env or GOOGLE_CLOUD_PROJECT detected. No secrets found.')
+    
+    
+    
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure--mq13ndq8=2d%sq%3@jn%)#5yvv3e5k5d9k=7x9)9$vp76=q9_"
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -84,11 +117,12 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 # }
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": "db.sqllite3",       
-    }
+    "default": env.db(),
 }
+
+if os.getenv("USE_CLOUD_SQL_AUTH_PROXY", None):
+    DATABASES["default"]["HOST"] = "127.0.0.1"
+    DATABASES["default"]["PORT"] = 5432
 
 
 # Password validation
@@ -125,11 +159,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
+GS_BUCKET_NAME = env('GS_BUCKET_NAME')
 STATIC_URL = "static/"
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-    # '/var/www/static/',
-]
+DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+STATICFILES_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+# GS_DEFAULT_ACL = "publicRead"
+STATICFILES_DIRS = [BASE_DIR/'static/']
+STATIC_ROOT = BASE_DIR/'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
