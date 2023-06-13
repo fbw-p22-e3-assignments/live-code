@@ -1,0 +1,8 @@
+[
+    {
+      "origin": ["https://python-bugs-1.ew.r.appspot.com"],
+      "method": ["GET"],
+      "responseHeader": ["Content-Type"],
+      "maxAgeSeconds": 3600
+    }
+]

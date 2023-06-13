@@ -18,6 +18,7 @@ import environ
 # import cloud secret manager
 import io
 from google.cloud import secretmanager
+from urllib.parse import urlparse
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -58,22 +59,33 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = ["*"]
+APPENGINE_URL = env("APPENGINE_URL", default=None)
+if APPENGINE_URL:
+    # Ensure a scheme is present in the URL before it's processed.
+    if not urlparse(APPENGINE_URL).scheme:
+        APPENGINE_URL = f"https://{APPENGINE_URL}"
 
+    ALLOWED_HOSTS = [urlparse(APPENGINE_URL).netloc]
+    CSRF_TRUSTED_ORIGINS = [APPENGINE_URL]
+    SECURE_SSL_REDIRECT = True
+else:
+    ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
+    # "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "todo",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -82,6 +94,22 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# CORS_ORIGIN_WHITELIST = (
+#     'http://localhost:8000',
+#     "https://python-bugs-1.ew.r.appspot.com",
+#     "127.0.0.1:8000",
+#     "127.0.0.1:8080",
+#     "34.78.144.167"
+# )
+
+# CORS_ALLOWED_ORIGINS = [
+#     "https://python-bugs-1.ew.r.appspot.com",
+#     "127.0.0.1:8000",
+#     "127.0.0.1:8080",
+#     "34.78.144.167"
+#     ]
+# CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = "mysite.urls"
 
@@ -123,6 +151,16 @@ DATABASES = {
 if os.getenv("USE_CLOUD_SQL_AUTH_PROXY", None):
     DATABASES["default"]["HOST"] = "127.0.0.1"
     DATABASES["default"]["PORT"] = 5432
+# DATABASES = {
+#     'default': {
+#         'HOST': "/cloudsql/python-bugs-1:europe-west1:todo-project",
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'todo-db-1',
+#         'USER': 'todo_user',
+#         'PASSWORD': 'todo_admin1234'
+#     }
+# }
+
 
 
 # Password validation
