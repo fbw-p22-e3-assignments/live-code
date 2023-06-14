@@ -51,5 +51,7 @@
 1. Using the key pair
 
     ```
-    ssh -i pb-test-1.pem root@ec2-52-59-195-202.eu-central-1.compute.amazonaws.com
+    ssh -i </path/key-pair-name.pem> <instance-user-name>@<instance-public-dns-name>
     ```
+
+    ![Example Connection Strings](example_imgs/connection-strings.png)
