@@ -74,7 +74,7 @@ else:
 # Application definition
 
 INSTALLED_APPS = [
-    # "django.contrib.admin",
+    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -103,13 +103,13 @@ MIDDLEWARE = [
 #     "34.78.144.167"
 # )
 
-# CORS_ALLOWED_ORIGINS = [
-#     "https://python-bugs-1.ew.r.appspot.com",
-#     "127.0.0.1:8000",
-#     "127.0.0.1:8080",
-#     "34.78.144.167"
-#     ]
-# CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "https://python-bugs-1.ew.r.appspot.com",
+    "http://127.0.0.1:8000",
+    "http://127.0.0.1:8080",
+    "http://34.78.144.167"
+    ]
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = "mysite.urls"
 
